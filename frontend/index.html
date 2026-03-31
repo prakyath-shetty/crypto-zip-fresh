@@ -651,6 +651,29 @@
         }
     </script>
 
+    <script type="module" src="firebase-auth.js"></script>
     <script src="crypto-api.js"></script>
+    <script>
+        signInWithGoogle = async function () {
+            const msg = document.getElementById('msg');
+
+            await window.FirebaseGoogleAuth.signIn({
+                apiBase: API,
+                onStart() {
+                    msg.className = 'msg success';
+                    msg.textContent = 'Completing Google sign-in...';
+                },
+                onSuccess() {
+                    msg.className = 'msg success';
+                    msg.textContent = 'Login successful! Redirecting...';
+                    setTimeout(() => { window.location.href = 'pages/dashboard.html'; }, 800);
+                },
+                onError(error) {
+                    msg.className = 'msg error';
+                    msg.textContent = 'Google sign-in failed: ' + (error.message || 'Unknown error');
+                }
+            });
+        };
+    </script>
 </body>
 </html>
