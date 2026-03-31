@@ -461,7 +461,6 @@
             );
         }
 
-        const CG  = 'https://api.coingecko.com/api/v3';
         const SYM = { usd:'$', eur:'€', inr:'₹' };
         const MARKET_IDS = 'bitcoin,ethereum,tether,binancecoin,solana,ripple,usd-coin,cardano,avalanche-2,dogecoin';
         let cur = 'usd', donutCh, portCh;
@@ -515,7 +514,7 @@
 
         // ── CG FETCH ──
         async function cgFetch(path) {
-            const r = await fetch(`${CG}${path}`, { signal: AbortSignal.timeout(8000) });
+            const r = await fetch(`${API}/market${path}`, { signal: AbortSignal.timeout(8000) });
             if (!r.ok) throw new Error('CoinGecko error ' + r.status);
             return r.json();
         }
@@ -950,7 +949,7 @@
             try {
                 // Fetch price history for top holding
                 const topCoin = enriched[0].meta.cgId;
-                const r = await fetch(`https://api.coingecko.com/api/v3/coins/${topCoin}/market_chart?vs_currency=${cur}&days=${days}`);
+                const r = await fetch(`${API}/market/coins/${topCoin}/market_chart?vs_currency=${cur}&days=${days}`);
                 const data = await r.json();
                 if (!data.prices?.length) return;
 

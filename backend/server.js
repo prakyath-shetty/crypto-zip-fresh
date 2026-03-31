@@ -39,6 +39,7 @@ app.use('/api/wallet',       require('./routes/wallet_route'));
 app.use('/api/watchlist',    require('./routes/watchlist_route'));
 app.use('/api/news',         require('./routes/news_route')); // news feed + newsletter subscribe
 app.use('/api/profile',     require('./routes/profile_route'));
+app.use('/api/market',      require('./routes/market_route'));
 
 // ── FIREWALL ADMIN (protected by x-admin-secret header) ───────
 app.use('/api/firewall', firewallAdminRouter());
@@ -75,6 +76,9 @@ app.get('/', (req, res) => {
             withdraw:          'POST   /api/wallet/withdraw',
             addBank:           'POST   /api/wallet/bank',
             deleteBank:        'DELETE /api/wallet/bank/:id',
+            marketSimplePrice: 'GET    /api/market/simple/price',
+            marketGlobal:      'GET    /api/market/global',
+            marketCoins:       'GET    /api/market/coins/markets',
             firewallStatus:    'GET    /api/firewall/status    [x-admin-secret required]',
             firewallBlock:     'POST   /api/firewall/block     [x-admin-secret required]',
             firewallUnblock:   'POST   /api/firewall/unblock   [x-admin-secret required]',

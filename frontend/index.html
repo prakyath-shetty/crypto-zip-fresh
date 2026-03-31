@@ -463,7 +463,10 @@
         (function() {
             const coins = { bitcoin:'BTC', ethereum:'ETH', solana:'SOL', binancecoin:'BNB' };
             function fmt(v) { return v>=1000?'$'+v.toLocaleString('en',{maximumFractionDigits:0}):'$'+v.toFixed(2); }
-            fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,binancecoin&vs_currencies=usd&include_24hr_change=true')
+            const marketApi = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                ? 'http://localhost:5000/api'
+                : 'https://crypto-backend-d9v8.onrender.com/api';
+            fetch(`${marketApi}/market/simple/price?ids=bitcoin,ethereum,solana,binancecoin&vs_currencies=usd&include_24hr_change=true`)
             .then(r=>r.json()).then(d=>{
                 const chips = document.querySelectorAll('.price-chip');
                 Object.entries(coins).forEach(([id, sym], i) => {

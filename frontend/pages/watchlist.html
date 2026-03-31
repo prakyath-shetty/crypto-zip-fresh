@@ -1030,7 +1030,7 @@
             const allIds = [...new Set([...watchIds, ...AVAILABLE_COINS.map(c => c.id)])].join(',');
             const ids = allIds;
             try {
-                const res  = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&price_change_percentage=24h,7d`);
+                const res  = await fetch(`${API}/market/coins/markets?vs_currency=usd&ids=${ids}&price_change_percentage=24h,7d`);
                 if (!res.ok) throw new Error('CoinGecko error');
                 const coins = await res.json();
                 coins.forEach(c => { livePrices[c.id] = c; });
@@ -1049,7 +1049,7 @@
         async function fetchSparkline(coinId) {
             if (sparkCache[coinId]) return sparkCache[coinId];
             try {
-                const res = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=10&interval=daily`);
+                const res = await fetch(`${API}/market/coins/${coinId}/market_chart?vs_currency=usd&days=10&interval=daily`);
                 const data = await res.json();
                 const full = (data.prices || []).map(p => ({ time: p[0], price: p[1] }));
                 sparkCache[coinId] = full;

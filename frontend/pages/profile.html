@@ -1328,7 +1328,7 @@
                 if (holdings.length) {
                     const ids = [...new Set(holdings.map(h => h.coin_id))].join(',');
                     try {
-                        const cgRes  = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`);
+                        const cgRes  = await fetch(`${API}/market/simple/price?ids=${ids}&vs_currencies=usd`);
                         const cgData = await cgRes.json();
                         livePrices = cgData;
                     } catch(_) {}
@@ -1536,7 +1536,7 @@
         // ═══════════════════ TICKER ═══════════════════
         async function loadTicker() {
             try {
-                const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&sparkline=false');
+                const res = await fetch(`${API}/market/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&sparkline=false`);
                 const coins = await res.json();
                 const track = document.getElementById('ticker');
                 const items = coins.map(c => {

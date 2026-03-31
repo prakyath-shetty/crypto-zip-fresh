@@ -206,11 +206,9 @@ tr:hover td{background:rgba(0,229,255,0.02);}
 
 // ── COIN LIST (top 20) ──
 const COIN_IDS = 'bitcoin,ethereum,tether,binancecoin,solana,ripple,usd-coin,cardano,avalanche-2,dogecoin,polkadot,chainlink,uniswap,litecoin,bitcoin-cash,stellar,vechain,filecoin,aave,algorand';
-const CG = 'https://api.coingecko.com/api/v3';
-
 // ── CORS-SAFE FETCH with retry on 429 ──
 async function cgFetch(path, retries = 3) {
-    const url = `${CG}${path}`;
+    const url = `${API}/market${path}`;
     for (let i = 0; i < retries; i++) {
         try {
             const r = await fetch(url, { signal: AbortSignal.timeout(10000) });

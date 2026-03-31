@@ -1198,7 +1198,7 @@
             var syms  = {bitcoin:"BTC",ethereum:"ETH",solana:"SOL",binancecoin:"BNB",cardano:"ADA",ripple:"XRP",dogecoin:"DOGE","avalanche-2":"AVAX"};
             function fmtPrice(v) { return v>=1000?"$"+v.toLocaleString("en",{maximumFractionDigits:2}):"$"+v.toFixed(v>=1?2:4); }
             function tick() {
-                fetch("https://api.coingecko.com/api/v3/simple/price?ids="+coins.join(",")+"&vs_currencies=usd&include_24hr_change=true")
+                fetch(`${API}/market/simple/price?ids=${coins.join(",")}&vs_currencies=usd&include_24hr_change=true`)
                 .then(function(r){return r.json();}).then(function(d){
                     var items = coins.map(function(id){
                         var p=d[id]; if(!p) return "";

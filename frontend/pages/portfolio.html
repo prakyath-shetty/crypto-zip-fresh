@@ -651,7 +651,7 @@ const res = await fetch(
 
                 if (cgIds) {
                     try {
-                        const pr = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${cgIds}&vs_currencies=usd&include_24hr_change=true`);
+                        const pr = await fetch(`${API}/market/simple/price?ids=${cgIds}&vs_currencies=usd&include_24hr_change=true`);
                         prices = await pr.json();
                     } catch(e) {}
                 }
@@ -792,7 +792,7 @@ const res = await fetch(
             const coins = [{id:'bitcoin',s:'BTC'},{id:'ethereum',s:'ETH'},{id:'solana',s:'SOL'},{id:'binancecoin',s:'BNB'},{id:'cardano',s:'ADA'}];
             if (!prices || Object.keys(prices).length === 0) {
                 try {
-                    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,binancecoin,cardano&vs_currencies=usd&include_24hr_change=true');
+                    const r = await fetch(`${API}/market/simple/price?ids=bitcoin,ethereum,solana,binancecoin,cardano&vs_currencies=usd&include_24hr_change=true`);
                     prices = await r.json();
                 } catch(e) { return; }
             }
@@ -882,7 +882,7 @@ const res = await fetch(
             loading.style.display = 'block';
             canvas.style.display = 'none';
             try {
-                const r = await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}/market_chart?vs_currency=usd&days=${days}`);
+                const r = await fetch(`${API}/market/coins/${cgId}/market_chart?vs_currency=usd&days=${days}`);
                 const d = await r.json();
                 if (!d.prices) { showChartError(); return; }
 
@@ -957,7 +957,7 @@ const res = await fetch(
 
                 // Fetch rank
                 try {
-                    const info = await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}?localization=false&tickers=false&community_data=false&developer_data=false`);
+                    const info = await fetch(`${API}/market/coins/${cgId}?localization=false&tickers=false&community_data=false&developer_data=false`);
                     const iData = await info.json();
                     if (iData.market_cap_rank) document.getElementById('cm-rank').textContent = '#' + iData.market_cap_rank;
                 } catch(e){}
