@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile & Settings - Crypto Portfolio Tracker</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030e1a;
+            --card: #0b1f35;
+            --card2: #0d2540;
+            --border: rgba(0, 200, 255, 0.1);
+            --cyan: #00e5ff;
+            --green: #00ff9c;
+            --red: #ff4d6d;
+            --yellow: #ffd60a;
+            --text: #e0f0ff;
+            --muted: #4a7090;
+            --sidebar-w: 240px;
+            --topbar-h: 64px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .ticker {
+            background: rgba(0, 229, 255, 0.06);
+            border-bottom: 1px solid var(--border);
+            height: 36px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        .ticker-track {
+            display: flex;
+            gap: 48px;
+            animation: ticker 30s linear infinite;
+            white-space: nowrap;
+            padding: 0 24px;
+        }
+
+        .ticker-item {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ticker-item .name {
+            color: var(--cyan);
+        }
+
+        .up {
+            color: var(--green);
+        }
+
+        .down {
+            color: var(--red);
+        }
+
+        @keyframes ticker {
+            from {
+                transform: translateX(0)
+            }
+
+            to {
+                transform: translateX(-50%)
+            }
+        }
+
+        .topbar {
+            position: fixed;
+            top: 36px;
+            left: 0;
+            right: 0;
+            height: var(--topbar-h);
+            background: rgba(6, 24, 40, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 100;
+            gap: 24px;
+        }
+
+        .logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--cyan);
+            margin-right: 16px;
+        }
+
+        .logo span {
+            color: var(--green);
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .refresh-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.3
+            }
+        }
+
+        .notif-btn {
+            position: relative;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--red);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cyan), var(--green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: #000;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: calc(36px + var(--topbar-h));
+            left: 0;
+            width: var(--sidebar-w);
+            height: calc(100vh - 36px - var(--topbar-h));
+            background: rgba(6, 24, 40, 0.95);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0;
+            z-index: 90;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            padding: 0 16px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 0 8px;
+            margin-bottom: 8px;
+            margin-top: 16px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 2px;
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 229, 255, 0.06);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--cyan);
+            border-left: 3px solid var(--cyan);
+        }
+
+        .nav-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--red);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--red);
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 77, 109, 0.1);
+        }
+
+        .main {
+            margin-left: var(--sidebar-w);
+            margin-top: calc(36px + var(--topbar-h));
+            padding: 28px;
+        }
+
+        .page-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .page-title span {
+            color: var(--cyan);
+        }
+
+        .page-sub {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 28px;
+        }
+
+        /* Tab nav */
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 6px;
+            margin-bottom: 28px;
+            width: fit-content;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 9px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--muted);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tab-btn.active {
+            background: rgba(0, 229, 255, 0.12);
+            color: var(--cyan);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text);
+        }
+
+        /* Tab panels */
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* Two col layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* Profile card */
+        .profile-hero {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            text-align: center;
+        }
+
+        .big-avatar {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cyan), var(--green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 700;
+            color: #000;
+            margin: 0 auto 14px;
+            position: relative;
+        }
+
+        .avatar-edit {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 24px;
+            height: 24px;
+            background: var(--card2);
+            border: 2px solid var(--bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .profile-name {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .profile-email {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 14px;
+        }
+
+        .profile-badge {
+            background: linear-gradient(90deg, rgba(0, 229, 255, 0.15), rgba(0, 255, 156, 0.15));
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--cyan);
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .pstat {
+            background: var(--card2);
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .pstat-label {
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .pstat-val {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--cyan);
+        }
+
+        .joined-info {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* Form card */
+        .form-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full {
+            grid-column: 1/-1;
+        }
+
+        .form-label {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-input {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 11px 14px;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--cyan);
+        }
+
+        .form-input::placeholder {
+            color: var(--muted);
+        }
+
+        .form-select {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 11px 14px;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .form-select option {
+            background: var(--card);
+        }
+
+        .save-btn {
+            background: linear-gradient(90deg, var(--cyan), var(--green));
+            border: none;
+            border-radius: 10px;
+            padding: 11px 28px;
+            color: #000;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        .save-btn:hover {
+            opacity: 0.88;
+        }
+
+        /* Toggle row */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(0, 200, 255, 0.05);
+        }
+
+        .toggle-row:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-info {
+            flex: 1;
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .toggle-desc {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: var(--card2);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 1px solid var(--border);
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 2px;
+            top: 2px;
+            background: var(--muted);
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle input:checked+.toggle-slider {
+            background: rgba(0, 255, 156, 0.2);
+            border-color: var(--green);
+        }
+
+        .toggle input:checked+.toggle-slider::before {
+            transform: translateX(20px);
+            background: var(--green);
+        }
+
+        /* Security */
+        .security-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: var(--card2);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .sec-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .sec-info {
+            flex: 1;
+        }
+
+        .sec-label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .sec-desc {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .sec-status {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .sec-status.on {
+            background: rgba(0, 255, 156, 0.1);
+            color: var(--green);
+        }
+
+        .sec-status.off {
+            background: rgba(255, 77, 109, 0.1);
+            color: var(--red);
+        }
+
+        .sec-btn {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 14px;
+            color: var(--muted);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .sec-btn:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        /* Appearance */
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .theme-opt {
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .theme-opt.active {
+            border-color: var(--cyan);
+        }
+
+        .theme-opt:hover {
+            border-color: rgba(0, 200, 255, 0.4);
+        }
+
+        .theme-preview {
+            width: 100%;
+            height: 50px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .theme-name {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Danger zone */
+        .danger-zone {
+            background: rgba(255, 77, 109, 0.05);
+            border: 1px solid rgba(255, 77, 109, 0.2);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .danger-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--red);
+            margin-bottom: 14px;
+        }
+
+        .danger-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 77, 109, 0.1);
+        }
+
+        .danger-item:last-child {
+            border-bottom: none;
+        }
+
+        .danger-info .dlabel {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .danger-info .ddesc {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .danger-btn {
+            background: none;
+            border: 1px solid var(--red);
+            border-radius: 8px;
+            padding: 7px 16px;
+            color: var(--red);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .danger-btn:hover {
+            background: rgba(255, 77, 109, 0.1);
+        }
+
+        /* Activity */
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 200, 255, 0.05);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .activity-info {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+
+        .activity-time {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .activity-device {
+            font-size: 11px;
+            color: var(--muted);
+            text-align: right;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            background: var(--green);
+            color: #000;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            z-index: 999;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        /* ── Notification Dropdown ── */
+        .notif-wrap { position: relative; }
+        .notif-dropdown {
+            display: none; position: absolute; top: calc(100% + 10px); right: 0;
+            width: 340px; background: #0b1f35; border: 1px solid rgba(0,200,255,0.15);
+            border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); z-index: 200; overflow: hidden;
+        }
+        .notif-dropdown.open { display: block; }
+        .notif-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 16px; border-bottom: 1px solid rgba(0,200,255,0.08);
+        }
+        .notif-header-title { font-weight: 700; font-size: 14px; }
+        .notif-mark-all {
+            background: none; border: 1px solid rgba(0,200,255,0.2); border-radius: 6px;
+            color: var(--cyan); font-size: 11px; padding: 4px 10px; cursor: pointer;
+        }
+        .notif-list { max-height: 320px; overflow-y: auto; }
+        .notif-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 12px 16px; border-bottom: 1px solid rgba(0,200,255,0.05);
+            cursor: pointer; transition: background 0.2s;
+        }
+        .notif-item:hover { background: rgba(0,229,255,0.04); }
+        .notif-item.unread { background: rgba(0,229,255,0.06); }
+        .notif-dot-icon {
+            width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
+        }
+        .notif-body { flex: 1; min-width: 0; }
+        .notif-title-text { font-size: 13px; font-weight: 600; margin-bottom: 3px; line-height: 1.3; }
+        .notif-sub-text { font-size: 11px; color: var(--muted); }
+        .notif-empty { padding: 24px; text-align: center; color: var(--muted); font-size: 13px; line-height: 1.6; }
+        .notif-footer {
+            padding: 10px 16px; border-top: 1px solid rgba(0,200,255,0.08); text-align: center;
+        }
+        .notif-footer a { color: var(--cyan); font-size: 13px; cursor: pointer; text-decoration: none; }
+    </style>
+</head>
+
+<body>
+
+    <!-- TICKER -->
+    <div class="ticker">
+        <div class="ticker-track" id="ticker"></div>
+    </div>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="logo">Crypto<span>Track</span></div>
+        <div class="topbar-right">
+            <div style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;">
+                <div class="refresh-dot"></div>Live • <span id="countdown">30s</span>
+            </div>
+            <div class="notif-wrap" id="notif-wrap">
+                <div class="notif-btn" onclick="toggleNotifDropdown()">🔔<div class="notif-badge" id="notif-badge" style="display:none">0</div></div>
+                <div class="notif-dropdown" id="notif-dropdown">
+                    <div class="notif-header">
+                        <span class="notif-header-title">🔔 Notifications</span>
+                        <button class="notif-mark-all" onclick="markAllRead()">Mark all read</button>
+                    </div>
+                    <div class="notif-list" id="notif-list">
+                        <div class="notif-empty">⏳ Loading...</div>
+                    </div>
+                    <div class="notif-footer"><a onclick="location.href='alerts.html'">View all alerts →</a></div>
+                </div>
+            </div>
+            <div class="profile-btn" onclick="location.href='profile.html'"><div class="avatar" id="topbar-avatar">??</div><span id="topbar-name" style="font-size:13px">Loading...</span></div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-label">Main Menu</div>
+            <div class="nav-item" onclick="location.href='dashboard.html'"><span class="nav-icon">🏠</span> Dashboard</div>
+            <div class="nav-item" onclick="location.href='portfolio.html'"><span class="nav-icon">📊</span> Portfolio</div>
+            <div class="nav-item" onclick="location.href='market.html'"><span class="nav-icon">🌍</span> Live Market</div>
+            <div class="nav-item" onclick="location.href='watchlist.html'"><span class="nav-icon">⭐</span> Watchlist</div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Tools</div>
+            <div class="nav-item" onclick="location.href='alerts.html'"><span class="nav-icon">🔔</span> Alerts <span class="nav-badge" id="sidebar-alert-badge" style="display:none">0</span></div>
+            <div class="nav-item" onclick="location.href='history.html'"><span class="nav-icon">🧾</span> Transaction History</div>
+            <div class="nav-item" onclick="location.href='news.html'"><span class="nav-icon">📰</span> News</div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Account</div>
+            <div class="nav-item active"><span class="nav-icon">👤</span> Profile</div>
+        </div>
+        <div class="sidebar-bottom">
+            <div class="logout-btn" onclick="handleLogout()"><span>🚪</span> Logout</div>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+        <div class="page-title">👤 Profile & <span>Settings</span></div>
+        <div class="page-sub">Manage your account, preferences and security</div>
+
+        <!-- Tab Nav -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('profile',this)">👤 Profile</button>
+            <button class="tab-btn" onclick="switchTab('security',this)">🔐 Security</button>
+            <button class="tab-btn" onclick="switchTab('notifications',this)">🔔 Notifications</button>
+        </div>
+
+        <!-- PROFILE TAB -->
+        <div class="tab-panel active" id="tab-profile">
+            <div class="two-col">
+                <!-- Left: Profile card -->
+                <div>
+                    <div class="profile-hero">
+                        <div class="big-avatar" id="big-avatar">??<div class="avatar-edit">✏️</div>
+                        </div>
+                        <div class="profile-name" id="profile-display-name">Loading...</div>
+                        <div class="profile-email" id="profile-email-display">loading...</div>
+                        <div class="profile-badge" id="experience-badge">⏳ Loading...</div>
+                        <div class="profile-stats">
+                            <div class="pstat">
+                                <div class="pstat-label">Portfolio</div>
+                                <div class="pstat-val" id="stat-portfolio">—</div>
+                            </div>
+                            <div class="pstat">
+                                <div class="pstat-label">Profit</div>
+                                <div class="pstat-val" id="stat-profit" style="color:var(--green)">—</div>
+                            </div>
+                            <div class="pstat">
+                                <div class="pstat-label">Trades</div>
+                                <div class="pstat-val" id="stat-trades">—</div>
+                            </div>
+                            <div class="pstat">
+                                <div class="pstat-label">Win Rate</div>
+                                <div class="pstat-val" id="stat-winrate">—</div>
+                            </div>
+                        </div>
+                        <div class="joined-info" id="joined-date">📅 Member since ...</div>
+                    </div>
+                </div>
+
+                <!-- Right: Edit form -->
+                <div>
+                    <div class="form-card">
+                        <div class="card-title">✏️ Personal Information</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <div class="form-label">First Name</div>
+                                <input class="form-input" id="input-firstname" placeholder="First name">
+                            </div>
+                            <div class="form-group">
+                                <div class="form-label">Last Name</div>
+                                <input class="form-input" id="input-lastname" placeholder="Last name">
+                            </div>
+                            <div class="form-group">
+                                <div class="form-label">Email Address</div>
+                                <input class="form-input" id="input-email" type="email" placeholder="Email" readonly style="opacity:0.6;cursor:not-allowed" title="Email cannot be changed">
+                            </div>
+                            <div class="form-group">
+                                <div class="form-label">Phone Number</div>
+                                <input class="form-input" id="input-phone" placeholder="+91 98765 43210">
+                            </div>
+                            <div class="form-group">
+                                <div class="form-label">Country</div>
+                                <select class="form-select">
+                                    <option selected>🇮🇳 India</option>
+                                    <option>🇺🇸 United States</option>
+                                    <option>🇬🇧 United Kingdom</option>
+                                    <option>🇸🇬 Singapore</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-label">Currency</div>
+                                <select class="form-select">
+                                    <option selected>USD ($)</option>
+                                    <option>INR (₹)</option>
+                                    <option>EUR (€)</option>
+                                    <option>GBP (£)</option>
+                                </select>
+                            </div>
+                            <div class="form-group full">
+                                <div class="form-label">Bio</div>
+                                <input class="form-input" id="input-bio" placeholder="Tell us about yourself">
+                            </div>
+                        </div>
+                        <div style="margin-top:20px"><button class="save-btn" id="save-profile-btn" onclick="saveProfile()">💾 Save Changes</button></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- SECURITY TAB -->
+        <div class="tab-panel" id="tab-security">
+            <div class="two-col">
+                <div>
+                    <div class="form-card">
+                        <div class="card-title">🔐 Change Password</div>
+                        <div class="form-group" style="margin-bottom:14px">
+                            <div class="form-label">Current Password</div>
+                            <input class="form-input" id="input-current-pw" type="password" placeholder="••••••••">
+                        </div>
+                        <div class="form-group" style="margin-bottom:14px">
+                            <div class="form-label">New Password</div>
+                            <input class="form-input" id="input-new-pw" type="password" placeholder="••••••••">
+                        </div>
+                        <div class="form-group" style="margin-bottom:20px">
+                            <div class="form-label">Confirm New Password</div>
+                            <input class="form-input" id="input-confirm-pw" type="password" placeholder="••••••••">
+                        </div>
+                        <button class="save-btn" id="change-pw-btn" onclick="changePassword()">🔐 Update Password</button>
+                    </div>
+
+                    <div class="danger-zone">
+                        <div class="danger-title">⚠️ Danger Zone</div>
+                        <div class="danger-item">
+                            <div class="danger-info">
+                                <div class="dlabel">Deactivate Account</div>
+                                <div class="ddesc">Temporarily disable your account</div>
+                            </div>
+                            <button class="danger-btn" onclick="deactivateAccount()">Deactivate</button>
+                        </div>
+                        <div class="danger-item">
+                            <div class="danger-info">
+                                <div class="dlabel">Delete Account</div>
+                                <div class="ddesc">Permanently delete all data — cannot be undone</div>
+                            </div>
+                            <button class="danger-btn" onclick="deleteAccount()">Delete</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="form-card">
+                        <div class="card-title">🛡️ Security Settings</div>
+                        <div class="security-item">
+                            <div class="sec-icon" style="background:rgba(255,214,10,0.1)">📧</div>
+                            <div class="sec-info">
+                                <div class="sec-label">Email Verification</div>
+                                <div class="sec-desc">Verified: <span id="verified-email">—</span></div>
+                            </div>
+                            <span class="sec-status on">✅ Verified</span>
+                        </div>
+                    </div>
+
+                    <!-- Connected Exchanges -->
+                    <div class="form-card" style="margin-top:20px">
+                        <div class="card-title">🔗 Connected Exchanges</div>
+                        <div id="connected-exchanges-list">
+                            <div style="color:var(--muted);font-size:13px;padding:8px 0;">Loading exchanges...</div>
+                        </div>
+                        <div style="margin-top:16px">
+                            <a href="portfolio.html" style="color:var(--cyan);font-size:13px;text-decoration:none">➕ Connect another exchange →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOTIFICATIONS TAB -->
+        <div class="tab-panel" id="tab-notifications">
+            <div style="max-width:700px">
+                <div class="form-card">
+                    <div class="card-title">📧 Email Notifications</div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Price Alerts</div>
+                            <div class="toggle-desc">Get emailed when your alerts trigger</div>
+                        </div><label class="toggle"><input type="checkbox" id="notif-price-alerts" checked><span
+                                class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Daily Portfolio Summary</div>
+                            <div class="toggle-desc">Morning email with your portfolio performance</div>
+                        </div><label class="toggle"><input type="checkbox" id="notif-daily-summary" checked><span
+                                class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Weekly Report</div>
+                            <div class="toggle-desc">Weekly P&L report every Monday</div>
+                        </div><label class="toggle"><input type="checkbox" id="notif-weekly-report"><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">News Digest</div>
+                            <div class="toggle-desc">Top 5 crypto news every morning</div>
+                        </div><label class="toggle"><input type="checkbox" id="notif-news-digest" checked><span
+                                class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Transaction Receipts</div>
+                            <div class="toggle-desc">Email confirmation for every trade</div>
+                        </div><label class="toggle"><input type="checkbox" id="notif-tx-receipts" checked><span
+                                class="toggle-slider"></span></label>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="card-title">🔔 Push Notifications</div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Price Alerts (In-App)</div>
+                            <div class="toggle-desc">Instant notification when target is hit</div>
+                        </div><label class="toggle"><input type="checkbox" id="notif-inapp-alerts" checked><span
+                                class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Trade Confirmations</div>
+                            <div class="toggle-desc">Notify when buy/sell order is filled</div>
+                        </div><label class="toggle"><input type="checkbox" id="notif-trade-confirm" checked><span
+                                class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Market Movers</div>
+                            <div class="toggle-desc">Alert when a coin moves ±10% in 24h</div>
+                        </div><label class="toggle"><input type="checkbox" id="notif-market-movers"><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Security Alerts</div>
+                            <div class="toggle-desc">New login or suspicious activity warnings</div>
+                        </div><label class="toggle"><input type="checkbox" id="notif-security" checked><span
+                                class="toggle-slider"></span></label>
+                    </div>
+                </div>
+                <button class="save-btn" onclick="saveNotifPrefs()">💾 Save Preferences</button>
+            </div>
+        </div>
+
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">✅ Saved!</div>
+
+    <script>
+        // ═══════════════════ CONFIG ═══════════════════
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-backend-d9v8.onrender.com/api';
+
+        // ── Global fetch wrapper — auto-redirect on token expiry ──
+        async function apiFetch(url, opts = {}) {
+            const res = await fetch(url, {
+                ...opts,
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...(opts.headers || {}) }
+            });
+            if (res.status === 401) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '../index.html';
+                return null;
+            }
+            return res;
+        }
+        const token = localStorage.getItem('token');
+        const userCache = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!token || !userCache) { window.location.href = '../index.html'; }
+
+        // ═══════════════════ HELPERS ═══════════════════
+        function initials(name) {
+            return (name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        }
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        }
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.textContent = (isError ? '❌ ' : '✅ ') + msg;
+            t.style.background = isError ? 'var(--red)' : 'var(--green)';
+            t.style.color = '#000';
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // ═══════════════════ LOAD PROFILE FROM BACKEND ═══════════════════
+        async function loadProfile() {
+            try {
+                const res = await apiFetch(`${API}/auth/me`);
+                if (!res.ok) throw new Error('Unauthorized');
+                const data = await res.json();
+                const user = data.user || data;
+
+                // Save fresh user to localStorage
+                localStorage.setItem('user', JSON.stringify(user));
+
+                const full = user.name || 'User';
+                const parts = full.split(' ');
+                const ini = initials(full);
+
+                // Topbar
+                document.getElementById('topbar-avatar').textContent = ini;
+                document.getElementById('topbar-name').textContent = full;
+
+                // Profile card
+                const bigAv = document.getElementById('big-avatar');
+                bigAv.childNodes[0].textContent = ini;
+                document.getElementById('profile-display-name').textContent = full;
+                document.getElementById('profile-email-display').textContent = user.email || '';
+                document.getElementById('joined-date').textContent = '📅 Member since ' + formatDate(user.created_at || user.createdAt);
+
+                // Dynamic experience badge based on how long they've been a member
+                const joinDate  = new Date(user.created_at || user.createdAt);
+                const monthsOld = (Date.now() - joinDate.getTime()) / (1000 * 60 * 60 * 24 * 30);
+                let badge, badgeStyle;
+                if (monthsOld < 3) {
+                    badge = '🌱 Beginner'; badgeStyle = 'background:rgba(0,255,156,0.12);border-color:rgba(0,255,156,0.3);color:var(--green)';
+                } else if (monthsOld < 12) {
+                    badge = '📈 Intermediate'; badgeStyle = 'background:rgba(0,229,255,0.12);border-color:rgba(0,229,255,0.3);color:var(--cyan)';
+                } else if (monthsOld < 24) {
+                    badge = '⭐ Advanced'; badgeStyle = 'background:rgba(255,214,10,0.12);border-color:rgba(255,214,10,0.3);color:var(--yellow)';
+                } else if (monthsOld < 48) {
+                    badge = '🏆 Expert'; badgeStyle = 'background:rgba(153,69,255,0.12);border-color:rgba(153,69,255,0.3);color:#9945ff';
+                } else {
+                    badge = '👑 Pro Trader'; badgeStyle = 'background:linear-gradient(90deg,rgba(0,229,255,0.15),rgba(0,255,156,0.15));border-color:rgba(0,229,255,0.3);color:var(--cyan)';
+                }
+                const badgeEl = document.getElementById('experience-badge');
+                if (badgeEl) { badgeEl.textContent = badge; badgeEl.style.cssText += ';' + badgeStyle; }
+
+                // Form fields
+                document.getElementById('input-firstname').value = parts[0] || '';
+                document.getElementById('input-lastname').value = parts.slice(1).join(' ') || '';
+                document.getElementById('input-email').value = user.email || '';
+                document.getElementById('input-phone').value = user.phone || '';
+                document.getElementById('input-bio').value = user.bio || '';
+
+                // Set verified email in security tab
+                const ve = document.getElementById('verified-email');
+                if (ve) ve.textContent = user.email || '—';
+
+            } catch (err) {
+                console.error('Profile load error:', err);
+                if (userCache) {
+                    const full = userCache.name || 'User';
+                    const ini = initials(full);
+                    document.getElementById('topbar-avatar').textContent = ini;
+                    document.getElementById('topbar-name').textContent = full;
+                    document.getElementById('big-avatar').childNodes[0].textContent = ini;
+                    document.getElementById('profile-display-name').textContent = full;
+                    document.getElementById('profile-email-display').textContent = userCache.email || '';
+                    document.getElementById('input-firstname').value = full.split(' ')[0] || '';
+                    document.getElementById('input-email').value = userCache.email || '';
+                    const ve = document.getElementById('verified-email');
+                    if (ve) ve.textContent = userCache.email || '—';
+                }
+            }
+        }
+
+        // ═══════════════════ LOAD PROFILE STATS ═══════════════════
+        async function loadProfileStats() {
+            try {
+                // 1. Fetch holdings
+                const hRes  = await apiFetch(`${API}/holdings`);
+                if (!hRes) return;
+                const hData = await hRes.json();
+                const holdings = hData.holdings || [];
+
+                // 2. Fetch live prices from CoinGecko for all held coins
+                let livePrices = {};
+                if (holdings.length) {
+                    const ids = [...new Set(holdings.map(h => h.coin_id))].join(',');
+                    try {
+                        const cgRes  = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`);
+                        const cgData = await cgRes.json();
+                        livePrices = cgData;
+                    } catch(_) {}
+                }
+
+                // 3. Calculate portfolio value + profit using live prices
+                let totalValue = 0, totalCost = 0;
+                holdings.forEach(h => {
+                    const qty   = parseFloat(h.quantity)      || 0;
+                    const avg   = parseFloat(h.avg_buy_price)  || 0;
+                    const live  = livePrices[h.coin_id]?.usd   || avg; // fallback to buy price
+                    totalValue += qty * live;
+                    totalCost  += qty * avg;
+                });
+                const profit   = totalValue - totalCost;
+                const profitEl = document.getElementById('stat-profit');
+
+                document.getElementById('stat-portfolio').textContent =
+                    '$' + totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+                if (profitEl) {
+                    profitEl.textContent = (profit >= 0 ? '+$' : '-$') + Math.abs(profit).toLocaleString('en-US', { maximumFractionDigits: 0 });
+                    profitEl.style.color = profit >= 0 ? 'var(--green)' : 'var(--red)';
+                }
+            } catch(e) {
+                document.getElementById('stat-portfolio').textContent = '—';
+                document.getElementById('stat-profit').textContent    = '—';
+            }
+
+            try {
+                // Trade count + win rate from transactions
+                const tRes  = await apiFetch(`${API}/transactions`);
+                if (!tRes) return;
+                const tData = await tRes.json();
+                const txns  = tData.transactions || tData.data || [];
+
+                const trades    = txns.filter(t => t.type === 'buy' || t.type === 'sell');
+                const sells     = trades.filter(t => t.type === 'sell');
+                const wins      = sells.filter(t => {
+                    const gain = (parseFloat(t.price_per_coin||0) - parseFloat(t.avg_buy_price||t.price_per_coin||0)) * parseFloat(t.quantity||0);
+                    return gain > 0;
+                });
+                const winRate = sells.length > 0 ? Math.round((wins.length / sells.length) * 100) : 0;
+
+                document.getElementById('stat-trades').textContent  = trades.length;
+                document.getElementById('stat-winrate').textContent = winRate + '%';
+            } catch(e) {
+                document.getElementById('stat-trades').textContent  = '—';
+                document.getElementById('stat-winrate').textContent = '—';
+            }
+        }
+
+        // ═══════════════════ LOAD ACTIVITY TAB ═══════════════════
+        async function loadActivity() {
+            const list = document.getElementById('activity-list');
+            if (!list) return;
+            try {
+                const res  = await apiFetch(`${API}/transactions`);
+                const data = await res.json();
+                const txns = (data.transactions || data.data || []).slice(0, 15);
+
+                if (!txns.length) {
+                    list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center">No transactions yet.</div>';
+                    return;
+                }
+
+                list.innerHTML = txns.map(t => {
+                    const isBuy  = t.type === 'buy';
+                    const isSell = t.type === 'sell';
+                    const dot    = isBuy ? 'var(--cyan)' : isSell ? 'var(--red)' : 'var(--yellow)';
+                    const icon   = isBuy ? '💰' : isSell ? '📤' : '💸';
+                    const qty    = parseFloat(t.quantity || 0).toFixed(4);
+                    const sym    = (t.symbol || t.coin_id || '').toUpperCase();
+                    const total  = parseFloat(t.total_value || (t.quantity * t.price_per_coin) || 0);
+                    const label  = isBuy
+                        ? `${icon} Bought ${qty} ${sym} for $${total.toLocaleString('en-US',{maximumFractionDigits:2})}`
+                        : isSell
+                        ? `${icon} Sold ${qty} ${sym} for $${total.toLocaleString('en-US',{maximumFractionDigits:2})}`
+                        : `${icon} ${t.type?.charAt(0).toUpperCase()+t.type?.slice(1) || 'Transaction'} — $${total.toLocaleString('en-US',{maximumFractionDigits:2})}`;
+                    const when   = t.created_at ? new Date(t.created_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+                    return `<div class="activity-item">
+                        <div class="activity-dot" style="background:${dot}"></div>
+                        <div class="activity-info">
+                            <div class="activity-text">${label}</div>
+                            <div class="activity-time">${when}</div>
+                        </div>
+                        <div class="activity-device">${t.exchange || 'Manual'}</div>
+                    </div>`;
+                }).join('');
+            } catch(e) {
+                list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center">Could not load activity.</div>';
+            }
+        }
+
+        // ═══════════════════ SAVE PROFILE ═══════════════════
+        async function saveProfile() {
+            const firstName = document.getElementById('input-firstname').value.trim();
+            const lastName  = document.getElementById('input-lastname').value.trim();
+            const phone     = document.getElementById('input-phone').value.trim();
+            const bio       = document.getElementById('input-bio').value.trim();
+            const name      = (firstName + ' ' + lastName).trim();
+
+            const btn = document.getElementById('save-profile-btn');
+            btn.textContent = '⏳ Saving...';
+            btn.disabled = true;
+
+            try {
+                const res = await apiFetch(`${API}/profile`, { method: 'PATCH', body: JSON.stringify({ name, phone, bio }) });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Failed to save');
+
+                // Update localStorage
+                const cached = JSON.parse(localStorage.getItem('user') || '{}');
+                localStorage.setItem('user', JSON.stringify({ ...cached, name, phone, bio }));
+
+                // Update UI instantly
+                document.getElementById('profile-display-name').textContent = name;
+                document.getElementById('topbar-name').textContent = name;
+                document.getElementById('topbar-avatar').textContent = initials(name);
+                document.getElementById('big-avatar').childNodes[0].textContent = initials(name);
+
+                showToast('Profile updated successfully!');
+            } catch (err) {
+                showToast(err.message || 'Could not save profile', true);
+            } finally {
+                btn.textContent = '💾 Save Changes';
+                btn.disabled = false;
+            }
+        }
+
+        // ═══════════════════ CHANGE PASSWORD ═══════════════════
+        async function changePassword() {
+            const currentPw  = document.getElementById('input-current-pw').value;
+            const newPw      = document.getElementById('input-new-pw').value;
+            const confirmPw  = document.getElementById('input-confirm-pw').value;
+
+            if (!currentPw || !newPw || !confirmPw) { showToast('Please fill all password fields', true); return; }
+            if (newPw !== confirmPw) { showToast('New passwords do not match', true); return; }
+            if (newPw.length < 6)   { showToast('Password must be at least 6 characters', true); return; }
+
+            const btn = document.getElementById('change-pw-btn');
+            btn.textContent = '⏳ Updating...';
+            btn.disabled = true;
+
+            try {
+                const res = await apiFetch(`${API}/profile/password`, { method: 'PATCH', body: JSON.stringify({ current_password: currentPw, new_password: newPw }) });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Failed to change password');
+                document.getElementById('input-current-pw').value = '';
+                document.getElementById('input-new-pw').value = '';
+                document.getElementById('input-confirm-pw').value = '';
+                showToast('Password changed successfully!');
+            } catch (err) {
+                showToast(err.message || 'Could not change password', true);
+            } finally {
+                btn.textContent = '🔐 Update Password';
+                btn.disabled = false;
+            }
+        }
+
+        // ═══════════════════ LOAD CONNECTED EXCHANGES ═══════════════════
+        async function loadConnectedExchanges() {
+            const container = document.getElementById('connected-exchanges-list');
+            try {
+                const res = await apiFetch(`${API}/exchange/list`);
+                const data = await res.json();
+                const exchanges = data.exchanges || [];
+
+                if (exchanges.length === 0) {
+                    container.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:16px 0;">
+                        No exchanges connected yet. <a href="portfolio.html" style="color:var(--cyan)">Connect one →</a>
+                    </div>`;
+                    return;
+                }
+
+                const logos = { binance: '🟡', kucoin: '🟢', coindcx: '🔵', coinbase: '🔷' };
+                container.innerHTML = exchanges.map(ex => `
+                    <div class="security-item">
+                        <div class="sec-icon" style="background:rgba(0,229,255,0.08);font-size:24px">${logos[ex.exchange] || '🔗'}</div>
+                        <div class="sec-info">
+                            <div class="sec-label">${ex.exchange.charAt(0).toUpperCase() + ex.exchange.slice(1)}</div>
+                            <div class="sec-desc">Connected since ${new Date(ex.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+                        </div>
+                        ${ex.is_active ? '<span class="sec-status on">✅ Active</span>' : '<span class="sec-status off">❌ Inactive</span>'}
+                        <button class="sec-btn" onclick="disconnectExchange('${ex.exchange}')">Disconnect</button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                container.innerHTML = `<div style="color:var(--muted);font-size:13px;">Could not load exchanges.</div>`;
+            }
+        }
+
+        async function disconnectExchange(exchange) {
+            if (!confirm(`Disconnect ${exchange}? Your portfolio data from this exchange will be removed.`)) return;
+            try {
+                const res = await apiFetch(`${API}/exchange/${exchange}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Failed');
+                showToast(`${exchange} disconnected!`);
+                loadConnectedExchanges();
+            } catch (err) {
+                showToast('Could not disconnect exchange', true);
+            }
+        }
+
+        // ═══════════════════ TICKER ═══════════════════
+        async function loadTicker() {
+            try {
+                const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&sparkline=false');
+                const coins = await res.json();
+                const track = document.getElementById('ticker');
+                const items = coins.map(c => {
+                    const up = c.price_change_percentage_24h >= 0;
+                    return `<div class="ticker-item"><span class="name">${c.symbol.toUpperCase()}</span>$${c.current_price.toLocaleString()}<span class="${up?'up':'down'}">${up?'▲':'▼'}${Math.abs(c.price_change_percentage_24h).toFixed(2)}%</span></div>`;
+                }).join('');
+                track.innerHTML = items + items;
+            } catch (e) {}
+        }
+
+        // ═══════════════════ INIT ═══════════════════
+        function handleLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../index.html';
+        }
+
+        function switchTab(name, el) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+            el.classList.add('active');
+            if (name === 'security')  loadConnectedExchanges();
+            if (name === 'activity')  loadActivity();
+        }
+
+        function selectTheme(el) {
+            document.querySelectorAll('.theme-opt').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            showToast('Theme applied!');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProfile();
+            loadProfileStats();
+            loadSecurityStatus();
+            loadTicker();
+            loadAllPrefs();
+        });
+
+
+        // ═══════════════════ DANGER ZONE ═══════════════════
+        async function deactivateAccount() {
+            if (!confirm('Deactivate your account? You can reactivate by logging in again.')) return;
+            try {
+                const res = await apiFetch(`${API}/profile/deactivate`, { method: 'POST' });
+                const d = await res.json();
+                if (res.ok) {
+                    showToast('Account deactivated. Logging out...');
+                    setTimeout(handleLogout, 2000);
+                } else {
+                    showToast(d.message || 'Could not deactivate account', true);
+                }
+            } catch(e) {
+                showToast('Could not reach server.', true);
+            }
+        }
+
+        async function deleteAccount() {
+            const confirmed = prompt('Type DELETE to permanently delete your account and all data:');
+            if (confirmed !== 'DELETE') { showToast('Cancelled — text did not match.', true); return; }
+            try {
+                const res = await apiFetch(`${API}/profile/delete-account`, { method: 'DELETE' });
+                const d = await res.json();
+                if (res.ok) {
+                    alert('Your account has been deleted. You will now be logged out.');
+                    handleLogout();
+                } else {
+                    showToast(d.message || 'Could not delete account', true);
+                }
+            } catch(e) {
+                showToast('Could not reach server.', true);
+            }
+        }
+
+        async function revokeAllSessions() {
+            if (!confirm('Revoke all active sessions? You will be logged out on all devices.')) return;
+            try {
+                const res = await apiFetch(`${API}/profile/revoke-sessions`, { method: 'POST' });
+                const d = await res.json();
+                if (res.ok) {
+                    showToast('All sessions revoked! Logging out...');
+                    setTimeout(handleLogout, 2000);
+                } else {
+                    showToast(d.message || 'Could not revoke sessions', true);
+                }
+            } catch(e) {
+                showToast('Could not reach server.', true);
+            }
+        }
+
+        // ═══════════════════ SECURITY STATUS ═══════════════════
+        async function loadSecurityStatus() {
+            try {
+                const res  = await apiFetch(`${API}/auth/security-status`);
+                if (!res) return;
+                const data = await res.json();
+
+                // 2FA status
+                const tfaEl  = document.getElementById('tfa-status');
+                const tfaBtn = document.getElementById('tfa-btn');
+                if (tfaEl) {
+                    const on = data.twofa_enabled;
+                    tfaEl.textContent  = on ? '✅ ON' : '❌ OFF';
+                    tfaEl.className    = 'sec-status ' + (on ? 'on' : 'off');
+                    if (tfaBtn) tfaBtn.textContent = on ? 'Disable' : 'Enable';
+                }
+
+                // Sessions count
+                const sessEl = document.getElementById('sessions-status');
+                if (sessEl && data.session_count !== undefined) {
+                    sessEl.textContent = data.session_count + ' Active';
+                    sessEl.className   = 'sec-status on';
+                }
+            } catch(e) {}
+        }
+
+        async function toggleTwoFactor() {
+            try {
+                const res  = await apiFetch(`${API}/auth/toggle-2fa`, { method: 'POST' });
+                if (!res) return;
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(data.message || '2FA updated!');
+                    loadSecurityStatus();
+                } else {
+                    showToast(data.message || 'Could not update 2FA', true);
+                }
+            } catch(e) {
+                showToast('Could not reach server', true);
+            }
+        }
+
+        // showToast defined above ↑
+
+        // ═══════════════════ PREFERENCES (localStorage) ═══════════════════
+        const PREFS_KEY = 'cryptotrack_prefs';
+
+        function loadAllPrefs() {
+            try {
+                const p = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+
+                // Notification toggles
+                const notifKeys = ['notif-price-alerts','notif-daily-summary','notif-weekly-report',
+                    'notif-news-digest','notif-tx-receipts','notif-inapp-alerts',
+                    'notif-trade-confirm','notif-market-movers','notif-security'];
+                notifKeys.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && p[id] !== undefined) el.checked = p[id];
+                });
+
+                // Appearance toggles
+                const appearKeys = ['appear-show-portfolio','appear-pnl-percent',
+                    'appear-compact','appear-animate','appear-ticker'];
+                appearKeys.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && p[id] !== undefined) el.checked = p[id];
+                });
+
+                // Trading preference selects
+                if (p['pref-risk']       && document.getElementById('pref-risk'))
+                    document.getElementById('pref-risk').value = p['pref-risk'];
+                if (p['pref-order-type'] && document.getElementById('pref-order-type'))
+                    document.getElementById('pref-order-type').value = p['pref-order-type'];
+                if (p['pref-timezone']   && document.getElementById('pref-timezone'))
+                    document.getElementById('pref-timezone').value = p['pref-timezone'];
+
+                // Theme
+                if (p['theme'] !== undefined) {
+                    document.querySelectorAll('.theme-opt').forEach((t, i) => {
+                        t.classList.toggle('active', i === p['theme']);
+                    });
+                }
+            } catch(_) {}
+        }
+
+        function saveNotifPrefs() {
+            const p = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+            ['notif-price-alerts','notif-daily-summary','notif-weekly-report',
+             'notif-news-digest','notif-tx-receipts','notif-inapp-alerts',
+             'notif-trade-confirm','notif-market-movers','notif-security'
+            ].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) p[id] = el.checked;
+            });
+            localStorage.setItem(PREFS_KEY, JSON.stringify(p));
+            showToast('Notification preferences saved!');
+        }
+
+        function saveAppearPrefs() {
+            const p = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+            ['appear-show-portfolio','appear-pnl-percent','appear-compact',
+             'appear-animate','appear-ticker'
+            ].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) p[id] = el.checked;
+            });
+            localStorage.setItem(PREFS_KEY, JSON.stringify(p));
+            showToast('Appearance preferences saved!');
+        }
+
+        function saveTradingPrefs() {
+            const p = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+            ['pref-risk','pref-order-type','pref-timezone'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) p[id] = el.value;
+            });
+            localStorage.setItem(PREFS_KEY, JSON.stringify(p));
+            showToast('Trading preferences saved!');
+        }
+
+        // Override selectTheme to also persist
+        function selectTheme(el) {
+            document.querySelectorAll('.theme-opt').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            const idx = [...document.querySelectorAll('.theme-opt')].indexOf(el);
+            const p = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+            p['theme'] = idx;
+            localStorage.setItem(PREFS_KEY, JSON.stringify(p));
+            showToast('Theme saved!');
+        }
+
+    </script>
+
+    <script>
+        // ── NOTIFICATION DROPDOWN ──
+        const NOTIF_KEY = 'cryptotrack_read_notifs';
+        function getReadIds() { try { return JSON.parse(localStorage.getItem(NOTIF_KEY)||'[]'); } catch(e){ return []; } }
+        function markIdRead(id) {
+            const ids = getReadIds();
+            if (!ids.includes(id)) { ids.push(id); localStorage.setItem(NOTIF_KEY, JSON.stringify(ids)); }
+        }
+        function markAllRead() {
+            const ids = (window._notifAlerts||[]).map(a=>a.id);
+            localStorage.setItem(NOTIF_KEY, JSON.stringify(ids));
+            renderNotifDropdown(window._notifAlerts||[]);
+        }
+        function toggleNotifDropdown() {
+            document.getElementById('notif-dropdown').classList.toggle('open');
+        }
+        document.addEventListener('click', e => {
+            const wrap = document.getElementById('notif-wrap');
+            if (wrap && !wrap.contains(e.target))
+                document.getElementById('notif-dropdown')?.classList.remove('open');
+        });
+        function updateNotifBadges(unread, waiting) {
+            const badge = document.getElementById('notif-badge');
+            const side  = document.getElementById('sidebar-alert-badge');
+            if (badge) { badge.textContent = unread;  badge.style.display  = unread  > 0 ? 'flex'         : 'none'; }
+            if (side)  { side.textContent  = waiting; side.style.display   = waiting > 0 ? 'inline-block' : 'none'; }
+        }
+        async function loadNotifications() {
+            const tkn = localStorage.getItem('token');
+            if (!tkn) return;
+            try {
+                const _api = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-backend-d9v8.onrender.com/api';
+                const res   = await fetch(_api + '/alerts', { headers:{'Authorization':'Bearer '+tkn} });
+                const data  = await res.json();
+                const alerts = data.alerts || [];
+                window._notifAlerts = alerts;
+                renderNotifDropdown(alerts);
+            } catch(e) {
+                const list = document.getElementById('notif-list');
+                if (list) list.innerHTML = '<div class="notif-empty">Could not load notifications.</div>';
+            }
+        }
+        function renderNotifDropdown(alerts) {
+            const readIds = getReadIds();
+            const list    = document.getElementById('notif-list');
+            if (!list) return;
+            const waiting = alerts.filter(a=>a.status==='waiting').length;
+            const items   = alerts.map(a => {
+                const isUnread  = !readIds.includes(a.id);
+                const isTrig    = a.status === 'triggered';
+                const icon      = isTrig ? '🚨' : a.status==='waiting' ? '⏳' : '🔕';
+                const iconBg    = isTrig ? 'rgba(0,255,156,0.15)' : a.status==='waiting' ? 'rgba(255,214,10,0.12)' : 'rgba(74,112,144,0.15)';
+                const iconColor = isTrig ? 'var(--green)' : a.status==='waiting' ? 'var(--yellow)' : 'var(--muted)';
+                const title     = isTrig
+                    ? `🚨 ${a.coin_name||a.symbol} alert triggered!`
+                    : `${a.coin_name||a.symbol} — ${a.condition} $${parseFloat(a.target_price).toLocaleString()}`;
+                const desc      = `${a.condition==='above'?'Above':'Below'} $${parseFloat(a.target_price).toLocaleString()}${isTrig?' ✅ Hit!':''}${a.note?' · '+a.note:''}`;
+                return { id:a.id, isUnread, icon, iconBg, iconColor, title, desc };
+            });
+            const unread = items.filter(i=>i.isUnread).length;
+            updateNotifBadges(unread, waiting);
+            if (!items.length) {
+                list.innerHTML = '<div class="notif-empty">🔕 No alerts yet.<br><a href="alerts.html" style="color:var(--cyan)">Create your first alert →</a></div>';
+                return;
+            }
+            list.innerHTML = items.map(item=>`
+                <div class="notif-item ${item.isUnread?'unread':''}" onclick="markIdRead(${item.id});this.classList.remove('unread')">
+                    <div class="notif-dot-icon" style="background:${item.iconBg};color:${item.iconColor}">${item.icon}</div>
+                    <div class="notif-body">
+                        <div class="notif-title-text">${item.title}</div>
+                        <div class="notif-sub-text">${item.desc}</div>
+                    </div>
+                </div>`).join('');
+        }
+        document.addEventListener('DOMContentLoaded', loadNotifications);
+    </script>
+<script src="../crypto-api.js"></script>
+    <script src="firewall.client.js"></script>
+</body>
+</html>

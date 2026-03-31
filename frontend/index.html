@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Portfolio Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030e1a;
+            --card: #0b1f35;
+            --card2: #0d2540;
+            --border: rgba(0,200,255,0.1);
+            --cyan: #00e5ff;
+            --green: #00ff9c;
+            --red: #ff4d6d;
+            --yellow: #ffd60a;
+            --text: #e0f0ff;
+            --muted: #4a7090;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text);
+            overflow: hidden;
+            background: var(--bg);
+        }
+
+        .bg {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at 30% 40%, #071e38 0%, #040f1e 50%, #020810 100%);
+            z-index: 0;
+        }
+
+        .bg::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 0;
+            width: 40%; height: 100%;
+            background: radial-gradient(ellipse at right center, rgba(0,229,255,0.07) 0%, transparent 65%);
+        }
+
+        .grid {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,180,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,180,255,0.03) 1px, transparent 1px);
+            background-size: 55px 55px;
+            z-index: 1;
+        }
+
+        .bokeh-container { position:fixed; inset:0; z-index:2; pointer-events:none; }
+        .bokeh { position:absolute; border-radius:50%; animation:bokehFloat ease-in-out infinite; }
+        @keyframes bokehFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+        .chart-svg { position:fixed; bottom:0; left:0; width:100%; height:55%; z-index:2; }
+        .line1 { stroke-dasharray:2200; stroke-dashoffset:2200; animation:drawLine 5s ease forwards; }
+        .line2 { stroke-dasharray:2200; stroke-dashoffset:2200; animation:drawLine 5s ease forwards 0.8s; }
+        .line3 { stroke-dasharray:2200; stroke-dashoffset:2200; animation:drawLine 5s ease forwards 1.5s; }
+        @keyframes drawLine { to { stroke-dashoffset:0; } }
+
+        .bars-svg { position:fixed; bottom:0; left:0; width:100%; height:45%; z-index:2; opacity:0.12; }
+
+        .main {
+            display: flex;
+            gap: 64px;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 1200px;
+        }
+
+        /* ── LEFT SIDE ── */
+        .intro { flex: 1; }
+
+        .intro-logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--cyan);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .intro-logo span { color: var(--green); }
+
+        .intro h1 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 44px;
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .intro h1 em {
+            font-style: normal;
+            background: linear-gradient(90deg, var(--cyan), var(--green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .intro-desc {
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--muted);
+            margin-bottom: 28px;
+            max-width: 480px;
+        }
+
+        .price-strip {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .price-chip {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .price-chip .sym {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            color: var(--cyan);
+            font-size: 14px;
+        }
+
+        .price-chip .val { font-weight: 600; color: var(--text); }
+        .price-chip .chg { font-size: 11px; }
+        .price-chip .up  { color: var(--green); }
+        .price-chip .dn  { color: var(--red); }
+
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .feat {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .feat:hover { border-color: rgba(0,229,255,0.3); }
+
+        .feat-icon {
+            font-size: 22px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .feat-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 3px;
+        }
+
+        .feat-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+        .social-proof {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .stars { color: var(--yellow); letter-spacing: 2px; }
+
+        .social-divider {
+            width: 1px; height: 20px;
+            background: var(--border);
+        }
+
+        /* ── RIGHT SIDE — Login card ── */
+        .container {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 36px 32px;
+            border-radius: 20px;
+            width: 380px;
+            min-width: 380px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(0,229,255,0.05);
+        }
+
+        .card-logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--cyan);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        .card-logo span { color: var(--green); }
+
+        .card-welcome {
+            text-align: center;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .form-group { margin-bottom: 14px; }
+
+        input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--card2);
+            color: var(--text);
+            outline: none;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: border 0.2s;
+        }
+
+        input::placeholder { color: var(--muted); }
+        input:focus { border-color: var(--cyan); }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 4px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        button:hover { opacity: 0.88; }
+
+        .login-btn {
+            background: linear-gradient(90deg, var(--cyan), var(--green));
+            color: #000;
+            font-size: 15px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        .login-btn:disabled { opacity:0.6; cursor:not-allowed; }
+
+        .google { background: white; color: #333; }
+
+        .or {
+            color: var(--muted);
+            margin: 14px 0 8px;
+            font-size: 12px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .or::before, .or::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .link {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .link a { color: var(--cyan); text-decoration: none; }
+        .link a:hover { text-decoration: underline; }
+
+        .msg {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 14px;
+            display: none;
+        }
+
+        .msg.error   { display:block; background:rgba(255,77,109,0.12); border:1px solid rgba(255,77,109,0.3); color:var(--red); }
+        .msg.success { display:block; background:rgba(0,255,156,0.1);   border:1px solid rgba(0,255,156,0.3);  color:var(--green); }
+
+        .spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(0,0,0,0.3);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        ::-webkit-scrollbar { width:4px; }
+        ::-webkit-scrollbar-track { background:var(--bg); }
+        ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+    </style>
+</head>
+
+<body>
+
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="bokeh-container" id="bokeh"></div>
+
+<svg class="chart-svg" viewBox="0 0 1440 400" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:0.6" />
+            <stop offset="100%" style="stop-color:#00ff9c;stop-opacity:0.6" />
+        </linearGradient>
+    </defs>
+    <polyline class="line1" points="0,320 60,300 120,310 180,280 240,295 300,260 360,240 420,255 480,220 540,235 600,195 660,210 720,170 780,185 840,145 900,160 960,120 1020,140 1080,100 1140,115 1200,140 1260,110 1320,80 1380,100 1440,85" fill="none" stroke="url(#grad1)" stroke-width="2.5" opacity="0.85" />
+    <polyline class="line2" points="0,360 60,345 120,355 180,330 240,345 300,315 360,300 420,312 480,285 540,298 600,268 660,280 720,248 780,260 840,228 900,238 960,205 1020,218 1080,188 1140,200 1200,218 1260,192 1320,168 1380,182 1440,168" fill="none" stroke="rgba(0,180,255,0.35)" stroke-width="1.5" />
+    <polyline class="line3" points="0,380 60,370 120,378 180,358 240,368 300,345 360,332 420,342 480,318 540,330 600,305 660,315 720,288 780,298 840,272 900,280 960,252 1020,262 1080,238 1140,248 1200,262 1260,240 1320,220 1380,228 1440,215" fill="none" stroke="rgba(0,140,200,0.2)" stroke-width="1" />
+</svg>
+
+<div class="main">
+
+    <!-- LEFT: Info side -->
+    <div class="intro">
+        <div class="intro-logo">₿ Crypto<span>Track</span></div>
+
+        <h1>Track Your Crypto<br><em>Portfolio Smarter</em></h1>
+
+        <p class="intro-desc">Monitor Bitcoin, Ethereum, and 100+ coins in real-time. Connect your exchange, set price alerts, and make better investment decisions — all in one place.</p>
+
+        <!-- Live prices -->
+        <div class="price-strip" id="priceStrip">
+            <div class="price-chip"><span class="sym">BTC</span><span class="val">⏳</span></div>
+            <div class="price-chip"><span class="sym">ETH</span><span class="val">⏳</span></div>
+            <div class="price-chip"><span class="sym">SOL</span><span class="val">⏳</span></div>
+            <div class="price-chip"><span class="sym">BNB</span><span class="val">⏳</span></div>
+        </div>
+
+        <!-- Feature cards -->
+        <div class="features">
+            <div class="feat">
+                <div class="feat-icon">📊</div>
+                <div>
+                    <div class="feat-title">Live Portfolio</div>
+                    <div class="feat-desc">Track value and P&L in real-time with live prices</div>
+                </div>
+            </div>
+            <div class="feat">
+                <div class="feat-icon">🔔</div>
+                <div>
+                    <div class="feat-title">Price Alerts</div>
+                    <div class="feat-desc">Get notified by email when your target price hits</div>
+                </div>
+            </div>
+            <div class="feat">
+                <div class="feat-icon">🔶</div>
+                <div>
+                    <div class="feat-title">Exchange Sync</div>
+                    <div class="feat-desc">Connect Binance, KuCoin & more to auto-sync trades</div>
+                </div>
+            </div>
+            <div class="feat">
+                <div class="feat-icon">📰</div>
+                <div>
+                    <div class="feat-title">Crypto News</div>
+                    <div class="feat-desc">Live news feed with Fear & Greed sentiment index</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social proof -->
+        <div class="social-proof">
+            <span class="stars">★★★★★</span>
+            <span>4.9/5 rating</span>
+            <div class="social-divider"></div>
+            <span>🔒 Read-only API — your funds are always safe</span>
+        </div>
+    </div>
+
+    <!-- RIGHT: Login card -->
+    <div class="container">
+        <div class="card-logo">Crypto<span>Track</span></div>
+        <div class="card-welcome">Welcome back! Sign in to your account</div>
+
+        <div id="msg" class="msg"></div>
+
+        <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" id="password" placeholder="••••••••">
+        </div>
+
+        <div style="text-align:right; margin: -6px 0 12px;">
+            <a href="pages/forgot-password.html" style="color:var(--cyan); font-size:12px; text-decoration:none;">Forgot Password?</a>
+        </div>
+
+        <button class="login-btn" id="loginBtn" onclick="handleLogin()">
+            <div class="spinner" id="spinner"></div>
+            <span id="loginText">🚀 Login</span>
+        </button>
+
+        <div class="or">OR</div>
+
+        <button class="google" onclick="signInWithGoogle()">
+            <svg width="18" height="18" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.7 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6C12.2 13 17.6 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8C43.8 37.3 46.5 31.3 46.5 24.5z"/>
+                <path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.9-4.7l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/>
+                <path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.4 0-11.8-3.5-13.6-8.3l-7.8 6C6.6 42.6 14.6 48 24 48z"/>
+            </svg>
+            Continue with Google
+        </button>
+
+        <div class="link">Don't have an account? <a href="pages/signup.html">Sign Up</a></div>
+    </div>
+</div>
+
+    <!-- Live prices script -->
+    <script>
+        (function() {
+            const coins = { bitcoin:'BTC', ethereum:'ETH', solana:'SOL', binancecoin:'BNB' };
+            function fmt(v) { return v>=1000?'$'+v.toLocaleString('en',{maximumFractionDigits:0}):'$'+v.toFixed(2); }
+            fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,binancecoin&vs_currencies=usd&include_24hr_change=true')
+            .then(r=>r.json()).then(d=>{
+                const chips = document.querySelectorAll('.price-chip');
+                Object.entries(coins).forEach(([id, sym], i) => {
+                    if (!d[id] || !chips[i]) return;
+                    const ch = d[id].usd_24h_change || 0;
+                    const up = ch >= 0;
+                    chips[i].innerHTML = `<span class="sym">${sym}</span><span class="val">${fmt(d[id].usd)}</span><span class="chg ${up?'up':'dn'}">${up?'▲':'▼'}${Math.abs(ch).toFixed(2)}%</span>`;
+                });
+            }).catch(()=>{});
+        })();
+    </script>
+
+    <!-- API base URL -->
+    <script>
+        const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? 'http://localhost:5000/api'
+            : 'https://crypto-backend-d9v8.onrender.com/api';
+
+        async function handleLogin() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const msg = document.getElementById('msg');
+            const btn = document.getElementById('loginBtn');
+            const spinner = document.getElementById('spinner');
+            const loginText = document.getElementById('loginText');
+
+            msg.className = 'msg';
+            msg.textContent = '';
+
+            if (!email || !password) {
+                msg.className = 'msg error';
+                msg.textContent = '⚠️ Please enter your email and password.';
+                return;
+            }
+
+            btn.disabled = true;
+            spinner.style.display = 'block';
+            loginText.textContent = 'Logging in...';
+
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 30000);
+
+                const res = await fetch(`${API}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeout);
+                const data = await res.json();
+
+                if (data.success) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    msg.className = 'msg success';
+                    msg.textContent = '✅ Login successful! Redirecting...';
+                    setTimeout(() => { window.location.href = 'pages/dashboard.html'; }, 800);
+                } else {
+                    msg.className = 'msg error';
+                    msg.textContent = '❌ ' + data.message;
+                    btn.disabled = false;
+                    spinner.style.display = 'none';
+                    loginText.textContent = '🚀 Login';
+                }
+
+            } catch (err) {
+                msg.className = 'msg error';
+                if (err.name === 'AbortError') {
+                    msg.textContent = '⏳ Server is waking up, please try again in a moment...';
+                } else {
+                    msg.textContent = '❌ Cannot connect to server. Make sure backend is running.';
+                }
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                loginText.textContent = '🚀 Login';
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+    </script>
+
+    <!-- Bokeh animation -->
+    <script>
+        const bokeh = document.getElementById('bokeh');
+        const colors = [
+            'rgba(0,229,255,OP)', 'rgba(0,180,255,OP)', 'rgba(255,70,70,OP)',
+            'rgba(255,150,0,OP)', 'rgba(180,0,255,OP)', 'rgba(0,255,150,OP)',
+            'rgba(255,80,180,OP)'
+        ];
+        for (let i = 0; i < 65; i++) {
+            const d = document.createElement('div');
+            d.className = 'bokeh';
+            const size = Math.random() * 18 + 4;
+            const op = (Math.random() * 0.45 + 0.12).toFixed(2);
+            const color = colors[Math.floor(Math.random() * colors.length)].replace('OP', op);
+            d.style.cssText = `
+                width:${size}px; height:${size}px;
+                left:${Math.random() * 100}%;
+                top:${Math.random() * 100}%;
+                background:${color};
+                filter:blur(${size > 12 ? 3 : 1}px);
+                animation-duration:${(Math.random() * 7 + 4).toFixed(1)}s;
+                animation-delay:${(Math.random() * 5).toFixed(1)}s;
+            `;
+            bokeh.appendChild(d);
+        }
+    </script>
+
+    <script src="pages/firewall.client.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- ✅ FIXED: Supabase Google OAuth -->
+    <script>
+        const _authClient = window.supabase.createClient(
+            'https://yxdnpxieraaqozzkmdpo.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4ZG5weGllcmFhcW96emttZHBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MTk0NjIsImV4cCI6MjA4ODk5NTQ2Mn0.sAuH1FgYQ0KbPolnxkOY62D3-uS2u2EJc5wthfUmhYA'
+        );
+
+        // ── Handle Google OAuth callback on page load ─────────────────────────────
+        // FIX: Use getSession() instead of checking window.location.hash
+        // This works reliably for both implicit and PKCE auth flows
+        const _justLoggedOut = localStorage.getItem('loggedOut') === 'true';
+        if (_justLoggedOut) {
+            localStorage.removeItem('loggedOut');
+        } else {
+            _authClient.auth.getSession().then(async ({ data: { session } }) => {
+                // Only proceed if Supabase has a session but we don't have a backend token yet
+                if (session && !localStorage.getItem('token')) {
+                    const msg = document.getElementById('msg');
+                    const email = session.user.email;
+                    const name = session.user.user_metadata?.full_name || email.split('@')[0];
+
+                    msg.className = 'msg success';
+                    msg.textContent = '⏳ Completing Google sign-in...';
+
+                    try {
+                        const res = await fetch('https://crypto-backend-d9v8.onrender.com/api/auth/google-login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email, name })
+                        });
+                        const data = await res.json();
+
+                        if (data.success) {
+                            localStorage.removeItem('token');
+                            localStorage.setItem('token', data.token);
+                            localStorage.setItem('user', JSON.stringify(data.user));
+                            msg.className = 'msg success';
+                            msg.textContent = '✅ Login successful! Redirecting...';
+                            setTimeout(() => { window.location.href = 'pages/dashboard.html'; }, 800);
+                        } else {
+                            msg.className = 'msg error';
+                            msg.textContent = '❌ Login failed: ' + data.message;
+                        }
+                    } catch (err) {
+                        msg.className = 'msg error';
+                        msg.textContent = '❌ Cannot connect to server. Make sure backend is running.';
+                    }
+                }
+            });
+        }
+
+        async function signInWithGoogle() {
+            const msg = document.getElementById('msg');
+            // Clear old session so user can pick account freshly
+            await _authClient.auth.signOut();
+            const { error } = await _authClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    // FIX: window.location.origin auto-resolves to correct domain
+                    // on localhost: http://localhost:5500
+                    // on Vercel:   https://crypto-frontend-app-six.vercel.app
+                    redirectTo: window.location.origin + '/index.html',
+                    queryParams: { prompt: 'select_account' }
+                }
+            });
+            if (error) {
+                msg.className = 'msg error';
+                msg.textContent = '❌ Google sign-in failed: ' + error.message;
+            }
+        }
+    </script>
+
+    <script src="crypto-api.js"></script>
+</body>
+</html>

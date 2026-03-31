@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History - Crypto Portfolio Tracker</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030e1a;
+            --card: #0b1f35;
+            --card2: #0d2540;
+            --border: rgba(0, 200, 255, 0.1);
+            --cyan: #00e5ff;
+            --green: #00ff9c;
+            --red: #ff4d6d;
+            --yellow: #ffd60a;
+            --text: #e0f0ff;
+            --muted: #4a7090;
+            --sidebar-w: 240px;
+            --topbar-h: 64px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* TICKER */
+        .ticker {
+            background: rgba(0, 229, 255, 0.06);
+            border-bottom: 1px solid var(--border);
+            height: 36px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        .ticker-track {
+            display: flex;
+            gap: 48px;
+            animation: ticker 30s linear infinite;
+            white-space: nowrap;
+            padding: 0 24px;
+        }
+
+        .ticker-item {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ticker-item .name {
+            color: var(--cyan);
+        }
+
+        .up {
+            color: var(--green);
+        }
+
+        .down {
+            color: var(--red);
+        }
+
+        @keyframes ticker {
+            from {
+                transform: translateX(0)
+            }
+
+            to {
+                transform: translateX(-50%)
+            }
+        }
+
+        /* TOPBAR */
+        .topbar {
+            position: fixed;
+            top: 36px;
+            left: 0;
+            right: 0;
+            height: var(--topbar-h);
+            background: rgba(6, 24, 40, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 100;
+            gap: 24px;
+        }
+
+        .logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--cyan);
+            margin-right: 16px;
+        }
+
+        .logo span {
+            color: var(--green);
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .refresh-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.3
+            }
+        }
+
+        .notif-btn {
+            position: relative;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--red);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cyan), var(--green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: #000;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed;
+            top: calc(36px + var(--topbar-h));
+            left: 0;
+            width: var(--sidebar-w);
+            height: calc(100vh - 36px - var(--topbar-h));
+            background: rgba(6, 24, 40, 0.95);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0;
+            z-index: 90;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            padding: 0 16px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 0 8px;
+            margin-bottom: 8px;
+            margin-top: 16px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 2px;
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 229, 255, 0.06);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--cyan);
+            border-left: 3px solid var(--cyan);
+        }
+
+        .nav-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--red);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--red);
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 77, 109, 0.1);
+        }
+
+        /* MAIN */
+        .main {
+            margin-left: var(--sidebar-w);
+            margin-top: calc(36px + var(--topbar-h));
+            padding: 28px;
+        }
+
+        /* Page header */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .page-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .page-title span {
+            color: var(--cyan);
+        }
+
+        /* Summary cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .sum-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sum-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+        }
+
+        .sum-card.blue::before {
+            background: linear-gradient(90deg, var(--cyan), transparent);
+        }
+
+        .sum-card.green::before {
+            background: linear-gradient(90deg, var(--green), transparent);
+        }
+
+        .sum-card.red::before {
+            background: linear-gradient(90deg, var(--red), transparent);
+        }
+
+        .sum-card.yellow::before {
+            background: linear-gradient(90deg, var(--yellow), transparent);
+        }
+
+        .sum-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .sum-val {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .sum-card.blue .sum-val {
+            color: var(--cyan);
+        }
+
+        .sum-card.green .sum-val {
+            color: var(--green);
+        }
+
+        .sum-card.red .sum-val {
+            color: var(--red);
+        }
+
+        .sum-card.yellow .sum-val {
+            color: var(--yellow);
+        }
+
+        .sum-sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .sum-icon {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 26px;
+            opacity: 0.2;
+        }
+
+        /* Filter bar */
+        .filter-bar {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .filter-select {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .filter-select option {
+            background: var(--card);
+        }
+
+        .search-wrap {
+            position: relative;
+            margin-left: auto;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .search-input {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px 8px 34px;
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+            width: 220px;
+        }
+
+        .search-input:focus {
+            border-color: var(--cyan);
+        }
+
+        .search-input::placeholder {
+            color: var(--muted);
+        }
+
+        .export-btn {
+            background: linear-gradient(90deg, var(--cyan), var(--green));
+            border: none;
+            border-radius: 8px;
+            padding: 9px 18px;
+            color: #000;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .export-btn:hover {
+            opacity: 0.88;
+        }
+
+        /* Type filter tabs */
+        .type-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .type-tab {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 18px;
+            color: var(--muted);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .type-tab:hover {
+            border-color: var(--cyan);
+            color: var(--text);
+        }
+
+        .type-tab.active {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            background: rgba(0, 229, 255, 0.08);
+        }
+
+        .tab-count {
+            background: rgba(0, 229, 255, 0.15);
+            color: var(--cyan);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+        }
+
+        .type-tab.buy.active {
+            border-color: var(--green);
+            color: var(--green);
+            background: rgba(0, 255, 156, 0.08);
+        }
+
+        .type-tab.buy .tab-count {
+            background: rgba(0, 255, 156, 0.15);
+            color: var(--green);
+        }
+
+        .type-tab.sell.active {
+            border-color: var(--red);
+            color: var(--red);
+            background: rgba(255, 77, 109, 0.08);
+        }
+
+        .type-tab.sell .tab-count {
+            background: rgba(255, 77, 109, 0.15);
+            color: var(--red);
+        }
+
+        .type-tab.deposit.active {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .type-tab.withdraw.active {
+            border-color: var(--yellow);
+            color: var(--yellow);
+            background: rgba(255, 214, 10, 0.08);
+        }
+
+        .type-tab.withdraw .tab-count {
+            background: rgba(255, 214, 10, 0.15);
+            color: var(--yellow);
+        }
+
+        /* Table */
+        .table-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th {
+            text-align: left;
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        th:hover {
+            color: var(--cyan);
+        }
+
+        td {
+            padding: 14px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(0, 200, 255, 0.04);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(0, 229, 255, 0.02);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .badge.buy {
+            background: rgba(0, 255, 156, 0.15);
+            color: var(--green);
+        }
+
+        .badge.sell {
+            background: rgba(255, 77, 109, 0.15);
+            color: var(--red);
+        }
+
+        .badge.deposit {
+            background: rgba(0, 229, 255, 0.15);
+            color: var(--cyan);
+        }
+
+        .badge.withdraw {
+            background: rgba(255, 214, 10, 0.15);
+            color: var(--yellow);
+        }
+
+        /* Status */
+        .status {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status.completed {
+            color: var(--green);
+        }
+
+        .status.pending {
+            color: var(--yellow);
+        }
+
+        .status.failed {
+            color: var(--red);
+        }
+
+        /* Coin cell */
+        .coin-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .coin-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .coin-name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .coin-sym {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        /* Amount */
+        .amt-pos {
+            color: var(--green);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .amt-neg {
+            color: var(--red);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-info {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .page-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .page-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 14px;
+            color: var(--muted);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover,
+        .page-btn.active {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        .detail-btn { background:none; border:1px solid var(--border); border-radius:6px; padding:4px 10px; color:var(--muted); font-size:12px; cursor:pointer; transition:all 0.2s; }
+        .detail-btn:hover { border-color:var(--cyan); color:var(--cyan); }
+        .notif-wrap { position:relative; }
+        .notif-dropdown { display:none; position:absolute; top:calc(100% + 10px); right:0; width:340px; background:#0b1f35; border:1px solid rgba(0,200,255,0.15); border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.5); z-index:200; overflow:hidden; }
+        .notif-dropdown.open { display:block; }
+        .notif-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid rgba(0,200,255,0.08); }
+        .notif-header-title { font-weight:700; font-size:14px; }
+        .notif-mark-all { background:none; border:1px solid rgba(0,200,255,0.2); border-radius:6px; color:var(--cyan); font-size:11px; padding:4px 10px; cursor:pointer; }
+        .notif-list { max-height:320px; overflow-y:auto; }
+        .notif-item { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; border-bottom:1px solid rgba(0,200,255,0.05); cursor:pointer; transition:background 0.2s; }
+        .notif-item:hover { background:rgba(0,229,255,0.04); }
+        .notif-item.unread { background:rgba(0,229,255,0.06); }
+        .notif-dot-icon { width:36px; height:36px; border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:16px; }
+        .notif-body { flex:1; min-width:0; }
+        .notif-title-text { font-size:13px; font-weight:600; margin-bottom:3px; line-height:1.3; }
+        .notif-sub-text { font-size:11px; color:var(--muted); }
+        .notif-empty { padding:24px; text-align:center; color:var(--muted); font-size:13px; }
+        .notif-footer { padding:10px 16px; border-top:1px solid rgba(0,200,255,0.08); text-align:center; }
+        .notif-footer a { color:var(--cyan); font-size:13px; cursor:pointer; text-decoration:none; }
+        .sync-btn { background:rgba(243,186,47,0.1); border:1px solid rgba(243,186,47,0.4); border-radius:10px; padding:10px 18px; color:#f3ba2f; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:8px; transition:all 0.2s; }
+        .sync-btn:hover { background:rgba(243,186,47,0.2); border-color:#f3ba2f; }
+        .sync-btn:disabled { opacity:0.5; cursor:not-allowed; }
+        .header-actions { display:flex; align-items:center; gap:10px; }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TICKER -->
+    <div class="ticker">
+        <div class="ticker-track" id="ticker"></div>
+    </div>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="logo">Crypto<span>Track</span></div>
+        <div class="topbar-right">
+            <div style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;">
+                <div class="refresh-dot"></div>Live • <span id="countdown">30s</span>
+            </div>
+            <div class="notif-wrap" id="notif-wrap">
+                <div class="notif-btn" onclick="toggleNotifDropdown()">🔔<div class="notif-badge" id="notif-badge" style="display:none">0</div></div>
+                <div class="notif-dropdown" id="notif-dropdown">
+                    <div class="notif-header">
+                        <span class="notif-header-title">🔔 Notifications</span>
+                        <button class="notif-mark-all" onclick="markAllRead()">Mark all read</button>
+                    </div>
+                    <div class="notif-list" id="notif-list"><div class="notif-empty">⏳ Loading...</div></div>
+                    <div class="notif-footer"><a onclick="location.href='alerts.html'">View all alerts →</a></div>
+                </div>
+            </div>
+            <div class="profile-btn" onclick="location.href='profile.html'"><div class="avatar" id="topbar-avatar">??</div><span id="topbar-name" style="font-size:13px">Loading...</span></div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-label">Main Menu</div>
+            <div class="nav-item" onclick="location.href='dashboard.html'"><span class="nav-icon">🏠</span> Dashboard</div>
+            <div class="nav-item" onclick="location.href='portfolio.html'"><span class="nav-icon">📊</span> Portfolio</div>
+            <div class="nav-item" onclick="location.href='market.html'"><span class="nav-icon">🌍</span> Live Market</div>
+            <div class="nav-item" onclick="location.href='watchlist.html'"><span class="nav-icon">⭐</span> Watchlist</div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Tools</div>
+            <div class="nav-item" onclick="location.href='alerts.html'"><span class="nav-icon">🔔</span> Alerts <span class="nav-badge">2</span></div>
+            <div class="nav-item active"><span class="nav-icon">🧾</span> Transaction History</div>
+            <div class="nav-item" onclick="location.href='news.html'"><span class="nav-icon">📰</span> News</div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Account</div>
+            <div class="nav-item" onclick="location.href='profile.html'"><span class="nav-icon">👤</span> Profile</div>
+        </div>
+        <div class="sidebar-bottom">
+            <div class="logout-btn" onclick="handleLogout()"><span>🚪</span> Logout</div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+        <div class="page-header">
+            <div class="page-title">Transaction <span>History</span></div>
+            <div class="header-actions">
+                <button class="sync-btn" id="syncBtn" onclick="syncFromExchanges()">🔄 Sync From Exchanges</button>
+                <span id="sync-status" style="font-size:12px;color:var(--muted)"></span>
+                <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-grid">
+            <div class="sum-card blue">
+                <div class="sum-label">Total Transactions</div>
+                <div class="sum-val" id="stat-total">—</div>
+                <div class="sum-icon">🧾</div>
+            </div>
+            <div class="sum-card green">
+                <div class="sum-label">Total Bought</div>
+                <div class="sum-val" id="stat-bought">—</div>
+                <div class="sum-icon">💰</div>
+            </div>
+            <div class="sum-card red">
+                <div class="sum-label">Total Sold</div>
+                <div class="sum-val" id="stat-sold">—</div>
+                <div class="sum-icon">📤</div>
+            </div>
+            <div class="sum-card yellow">
+                <div class="sum-label">Total Deposited</div>
+                <div class="sum-val" id="stat-deposits">—</div>
+                <div class="sum-icon">🏦</div>
+            </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <span class="filter-label">Sort by:</span>
+                <select class="filter-select" onchange="applyFilters()">
+                    <option value="date-desc">Date (Newest)</option>
+                    <option value="date-asc">Date (Oldest)</option>
+                    <option value="amount-desc">Amount (High)</option>
+                    <option value="amount-asc">Amount (Low)</option>
+                </select>
+            </div>
+            <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input class="search-input" id="searchInput" placeholder="Search coin, type...">
+            </div>
+        </div>
+
+        <!-- Type Tabs -->
+        <div class="type-tabs">
+            <div class="type-tab active" data-type="all" onclick="setType('all',this)">All <span class="tab-count">0</span></div>
+            <div class="type-tab buy" data-type="buy" onclick="setType('buy',this)">💚 Buy <span class="tab-count">0</span></div>
+            <div class="type-tab sell" data-type="sell" onclick="setType('sell',this)">🔴 Sell <span class="tab-count">0</span></div>
+            <div class="type-tab deposit" data-type="deposit" onclick="setType('deposit',this)">🔵 Deposit <span class="tab-count">0</span></div>
+            <div class="type-tab withdraw" data-type="withdraw" onclick="setType('withdraw',this)">🟡 Withdraw <span class="tab-count">0</span></div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Coin</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                        <th>Exchange</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="txnBody">
+                    <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted)">⏳ Loading transactions...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination info -->
+        <div class="pagination">
+            <div class="page-info" id="pageInfo">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-backend-d9v8.onrender.com/api';
+        const token  = localStorage.getItem('token');
+        const user   = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!token || !user) { window.location.href = '../index.html'; }
+
+        // ── topbar user ──
+        function loadUser() {
+            if (!user) return;
+            const full = user.name || 'User';
+            const ini  = full.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            const av   = document.getElementById('topbar-avatar');
+            const nm   = document.getElementById('topbar-name');
+            if (av) av.textContent = ini;
+            if (nm) nm.textContent = full;
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../index.html';
+        }
+
+        // ── coin meta for logos ──
+        const COIN_META = {
+            BTC:  { logo: '₿',  color: '#f7931a', bg: 'rgba(247,147,26,0.15)',  name: 'Bitcoin'   },
+            ETH:  { logo: 'Ξ',  color: '#627eea', bg: 'rgba(98,126,234,0.15)',  name: 'Ethereum'  },
+            SOL:  { logo: '◎',  color: '#9945ff', bg: 'rgba(153,69,255,0.15)',  name: 'Solana'    },
+            BNB:  { logo: 'B',  color: '#f0b90b', bg: 'rgba(240,185,11,0.15)',  name: 'BNB'       },
+            ADA:  { logo: 'A',  color: '#0072ff', bg: 'rgba(0,114,255,0.15)',   name: 'Cardano'   },
+            AVAX: { logo: 'A',  color: '#e84142', bg: 'rgba(232,65,66,0.15)',   name: 'Avalanche' },
+            POL:  { logo: 'M',  color: '#8247e5', bg: 'rgba(130,71,229,0.15)',  name: 'Polygon'   },
+            LINK: { logo: '⬡',  color: '#2a5ada', bg: 'rgba(42,90,218,0.15)',   name: 'Chainlink' },
+            DOT:  { logo: '●',  color: '#e6007a', bg: 'rgba(230,0,122,0.15)',   name: 'Polkadot'  },
+            UNI:  { logo: '🦄', color: '#ff007a', bg: 'rgba(255,0,122,0.15)',   name: 'Uniswap'   },
+        };
+        const CASH_META = { logo: '💵', color: '#00e5ff', bg: 'rgba(0,229,255,0.1)', name: 'Cash' };
+
+        function getCoinMeta(symbol) {
+            return COIN_META[symbol?.toUpperCase()] || { logo: symbol?.[0] || '?', color: '#00e5ff', bg: 'rgba(0,229,255,0.1)', name: symbol || 'Unknown' };
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            return new Date(dateStr).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatNum(n) {
+            if (!n && n !== 0) return '—';
+            return '$' + parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // ── state ──
+        let allTxns    = [];
+        let currentType = 'all';
+        let searchQ     = '';
+
+        // ── sync from connected exchange (same as Portfolio) ──
+        async function syncFromExchanges() {
+            const btn = document.getElementById('syncBtn');
+            const status = document.getElementById('sync-status');
+
+            // Read which exchange is connected — same as Portfolio page
+            const exchanges = JSON.parse(localStorage.getItem('exchanges') || '{}');
+            const connected = Object.entries(exchanges).find(([, v]) => v.connected);
+
+            if (!connected) {
+                status.textContent = '❌ No exchange connected. Go to Portfolio first.';
+                status.style.color = 'var(--red)';
+                setTimeout(() => { status.textContent = ''; }, 5000);
+                return;
+            }
+
+            const [exchangeKey, exchangeVal] = connected;
+            const exchangeLogos = { binance:'🔶', kucoin:'🟢', coindcx:'🔵', coinbase:'🔷' };
+            const logo = exchangeLogos[exchangeKey] || '🔗';
+
+            btn.disabled = true;
+            btn.textContent = `⏳ Syncing ${exchangeVal.name}...`;
+            status.textContent = '';
+            status.style.color = 'var(--muted)';
+
+            try {
+                const res = await fetch(`${API}/exchange/sync-trades`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ exchange: exchangeKey })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    status.textContent = data.synced > 0
+                        ? `✅ ${data.synced} new trades synced from ${exchangeVal.name}!`
+                        : `✅ ${exchangeVal.name} already up to date`;
+                    status.style.color = 'var(--green)';
+                    if (data.synced > 0) await loadTransactions();
+                } else {
+                    status.textContent = '❌ ' + (data.message || 'Sync failed');
+                    status.style.color = 'var(--red)';
+                }
+            } catch (err) {
+                status.textContent = '❌ Could not reach backend';
+                status.style.color = 'var(--red)';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = `${logo} Sync from ${exchangeVal.name}`;
+                setTimeout(() => { status.textContent = ''; }, 6000);
+            }
+        }
+
+        // ── fetch from backend ──
+        async function loadTransactions() {
+            const tbody = document.getElementById('txnBody');
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted)">⏳ Loading transactions...</td></tr>`;
+
+            try {
+                const res  = await fetch(`${API}/transactions`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.message || 'Failed to load');
+
+                allTxns = data.transactions || [];
+                updateSummaryCards();
+                updateTabCounts();
+                applyFilters();
+
+            } catch (err) {
+                console.error('Load transactions error:', err);
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted)">
+                    ⚠️ Could not load transactions. Make sure your backend is running.<br>
+                    <span style="font-size:12px;margin-top:8px;display:block">${err.message}</span>
+                </td></tr>`;
+            }
+        }
+
+        // ── summary cards ──
+        function updateSummaryCards() {
+            const buys      = allTxns.filter(t => t.type === 'buy');
+            const sells     = allTxns.filter(t => t.type === 'sell');
+            const deposits  = allTxns.filter(t => t.type === 'deposit');
+            const totalBuy  = buys.reduce((s, t)  => s + parseFloat(t.total || 0), 0);
+            const totalSell = sells.reduce((s, t) => s + parseFloat(t.total || 0), 0);
+            const totalDep  = deposits.reduce((s, t) => s + parseFloat(t.amount || t.total || 0), 0);
+
+            const el = id => document.getElementById(id);
+            if (el('stat-total'))    el('stat-total').textContent    = allTxns.length;
+            if (el('stat-bought'))   el('stat-bought').textContent   = formatNum(totalBuy);
+            if (el('stat-sold'))     el('stat-sold').textContent     = formatNum(totalSell);
+            if (el('stat-deposits')) el('stat-deposits').textContent = formatNum(totalDep);
+        }
+
+        // ── tab counts ──
+        function updateTabCounts() {
+            const counts = { all: allTxns.length, buy: 0, sell: 0, deposit: 0, withdraw: 0 };
+            allTxns.forEach(t => { if (counts[t.type] !== undefined) counts[t.type]++; });
+            document.querySelectorAll('.type-tab').forEach(tab => {
+                const type  = tab.dataset.type;
+                const badge = tab.querySelector('.tab-count');
+                if (badge && counts[type] !== undefined) badge.textContent = counts[type];
+            });
+        }
+
+        // ── render table ──
+        function renderTable(data) {
+            const tbody = document.getElementById('txnBody');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                const exchanges = JSON.parse(localStorage.getItem('exchanges') || '{}');
+                const isConnected = Object.values(exchanges).some(v => v.connected);
+                const msg = allTxns.length === 0
+                    ? isConnected
+                        ? '🔄 Exchanges connected! Click <strong style="color:var(--cyan)">Sync From Exchanges</strong> to load your trade history.'
+                        : '📭 No transactions yet. Go to <a onclick="location.href=\'portfolio.html\'" style="color:var(--cyan);cursor:pointer">Portfolio</a> to connect your exchange first.'
+                    : '🔍 No transactions match your filters.';
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:48px;color:var(--muted)">${msg}</td></tr>`;
+                document.getElementById('pageInfo').textContent = 'No transactions';
+                return;
+            }
+
+            data.forEach(t => {
+                const isCash  = !t.coin_id || t.type === 'deposit' || t.type === 'withdraw';
+                const meta    = isCash ? CASH_META : getCoinMeta(t.symbol);
+                const coinName = t.coin_name || meta.name || t.symbol || '—';
+                const symbol   = t.symbol || 'USD';
+                const qty      = t.amount  ? `${parseFloat(t.amount).toFixed(4)} ${symbol}` : '—';
+                const price    = t.price   ? formatNum(t.price)  : '—';
+                const total    = parseFloat(t.total || t.amount || 0);
+                const isPos    = t.type === 'sell' || t.type === 'deposit';
+                const status   = t.status || 'completed';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="color:var(--muted);font-size:12px">${formatDate(t.created_at)}</td>
+                    <td><span class="badge ${t.type}">${t.type.toUpperCase()}</span></td>
+                    <td>
+                        <div class="coin-cell">
+                            <div class="coin-logo" style="background:${meta.bg};color:${meta.color}">${meta.logo}</div>
+                            <div><div class="coin-name">${coinName}</div><div class="coin-sym">${symbol}</div></div>
+                        </div>
+                    </td>
+                    <td style="color:var(--text)">${qty}</td>
+                    <td style="color:var(--text)">${price}</td>
+                    <td class="${isPos ? 'amt-pos' : 'amt-neg'}">${isPos ? '+' : '-'}${formatNum(Math.abs(total))}</td>
+                    <td style="color:var(--muted);font-size:12px">${
+                        t.exchange_name === 'binance'  ? '🔶 Binance'  :
+                        t.exchange_name === 'kucoin'   ? '🟢 KuCoin'   :
+                        t.exchange_name === 'coindcx'  ? '🔵 CoinDCX'  :
+                        t.exchange_name === 'coinbase' ? '🔷 Coinbase' :
+                        t.binance_trade_id             ? '🔶 Binance'  : '—'
+                    }</td>
+                    <td><span class="status ${status}">${status === 'completed' ? '✅ Completed' : status === 'pending' ? '⏳ Pending' : '❌ Failed'}</span></td>
+                    <td><button class="detail-btn" onclick="showDetail(${t.id})">Details</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('pageInfo').textContent = `Showing 1–${data.length} of ${data.length} transactions`;
+        }
+
+        // ── filters ──
+        function applyFilters() {
+            let data = [...allTxns];
+            if (currentType !== 'all') data = data.filter(t => t.type === currentType);
+            if (searchQ) data = data.filter(t =>
+                (t.coin_name || '').toLowerCase().includes(searchQ) ||
+                (t.symbol    || '').toLowerCase().includes(searchQ) ||
+                (t.type      || '').toLowerCase().includes(searchQ)
+            );
+            renderTable(data);
+        }
+
+        function setType(type, el) {
+            currentType = type;
+            document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            applyFilters();
+        }
+
+        // ── export CSV ──
+        function exportCSV() {
+            if (allTxns.length === 0) { alert('No transactions to export.'); return; }
+            const esc = v => `"${String(v).replace(/"/g, '""')}"`;
+            const headers = ['Date', 'Type', 'Coin', 'Symbol', 'Amount', 'Price (USD)', 'Total (USD)', 'Exchange', 'Status'];
+            const rows = allTxns.map(t => [
+                esc(formatDate(t.created_at)),
+                esc(t.type),
+                esc(t.coin_name || '—'),
+                esc(t.symbol || '—'),
+                esc(t.amount || '—'),
+                esc(t.price || '—'),
+                esc(t.total || '—'),
+                esc(t.exchange_name || (t.binance_trade_id ? 'Binance' : '—')),
+                esc(t.status || 'completed')
+            ]);
+            const csv  = [headers.map(esc), ...rows].map(r => r.join(',')).join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const a    = document.createElement('a');
+            a.href     = URL.createObjectURL(blob);
+            a.download = `transactions_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+        }
+
+        // ── detail popup ──
+        function showDetail(id) {
+            const t = allTxns.find(x => x.id === id);
+            if (!t) return;
+            alert(`Transaction Details\n\nID: ${t.id}\nType: ${t.type.toUpperCase()}\nCoin: ${t.coin_name || '—'} (${t.symbol || '—'})\nAmount: ${t.amount || '—'}\nPrice: ${t.price ? formatNum(t.price) : '—'}\nTotal: ${formatNum(t.total || t.amount)}\nDate: ${formatDate(t.created_at)}\nStatus: ${t.status || 'completed'}`);
+        }
+
+        // ── ticker ──
+        async function loadTicker() {
+            try {
+                const res   = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&sparkline=false');
+                const coins = await res.json();
+                const track = document.getElementById('ticker');
+                const items = coins.map(c => {
+                    const up = c.price_change_percentage_24h >= 0;
+                    return `<div class="ticker-item"><span class="name">${c.symbol.toUpperCase()}</span>$${c.current_price.toLocaleString()}<span class="${up ? 'up' : 'down'}">${up ? '▲' : '▼'}${Math.abs(c.price_change_percentage_24h).toFixed(2)}%</span></div>`;
+                }).join('');
+                track.innerHTML = items + items;
+            } catch (e) {}
+        }
+
+        // ── init ──
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUser();
+            loadTransactions();
+            loadTicker();
+
+            // Set sync button label to match connected exchange
+            const exchanges = JSON.parse(localStorage.getItem('exchanges') || '{}');
+            const connected = Object.entries(exchanges).find(([, v]) => v.connected);
+            if (connected) {
+                const [key, val] = connected;
+                const logos = { binance:'🔶', kucoin:'🟢', coindcx:'🔵', coinbase:'🔷' };
+                document.getElementById('syncBtn').textContent = `${logos[key] || '🔗'} Sync from ${val.name}`;
+            }
+
+            document.getElementById('searchInput').addEventListener('input', e => {
+                searchQ = e.target.value.toLowerCase().trim();
+                applyFilters();
+            });
+        });
+    </script>
+    <script>
+        // ── NOTIFICATION DROPDOWN ──
+        const NOTIF_KEY = 'cryptotrack_read_notifs';
+        function getReadIds() { try { return JSON.parse(localStorage.getItem(NOTIF_KEY)||'[]'); } catch(e){ return []; } }
+        function markIdRead(id) {
+            const ids = getReadIds();
+            if (!ids.includes(id)) { ids.push(id); localStorage.setItem(NOTIF_KEY, JSON.stringify(ids)); }
+        }
+        function markAllRead() {
+            const ids = (window._notifAlerts||[]).map(a=>a.id);
+            localStorage.setItem(NOTIF_KEY, JSON.stringify(ids));
+            renderNotifDropdown(window._notifAlerts||[]);
+        }
+        function toggleNotifDropdown() {
+            document.getElementById('notif-dropdown').classList.toggle('open');
+        }
+        document.addEventListener('click', e => {
+            const wrap = document.getElementById('notif-wrap');
+            if (wrap && !wrap.contains(e.target))
+                document.getElementById('notif-dropdown')?.classList.remove('open');
+        });
+        async function loadNotifications() {
+            const tkn = localStorage.getItem('token');
+            if (!tkn) return;
+            try {
+                const _api = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-backend-d9v8.onrender.com/api';
+                const res  = await fetch(_api + '/alerts', { headers: { 'Authorization': 'Bearer ' + tkn } });
+                const data = await res.json();
+                window._notifAlerts = data.alerts || [];
+                renderNotifDropdown(window._notifAlerts);
+            } catch(e) {
+                const list = document.getElementById('notif-list');
+                if (list) list.innerHTML = '<div class="notif-empty">Could not load notifications.</div>';
+            }
+        }
+        function renderNotifDropdown(alerts) {
+            const readIds = getReadIds();
+            const list    = document.getElementById('notif-list');
+            if (!list) return;
+            const waiting = alerts.filter(a => a.status === 'waiting').length;
+            const items   = alerts.map(a => {
+                const isUnread  = !readIds.includes(a.id);
+                const isTrig    = a.status === 'triggered';
+                const icon      = isTrig ? '🚨' : a.status === 'waiting' ? '⏳' : '🔕';
+                const iconBg    = isTrig ? 'rgba(0,255,156,0.15)' : a.status === 'waiting' ? 'rgba(255,214,10,0.12)' : 'rgba(74,112,144,0.15)';
+                const iconColor = isTrig ? 'var(--green)' : a.status === 'waiting' ? 'var(--yellow)' : 'var(--muted)';
+                const title     = isTrig ? `🚨 ${a.coin_name||a.symbol} alert triggered!` : `${a.coin_name||a.symbol} — ${a.condition} $${parseFloat(a.target_price).toLocaleString()}`;
+                const desc      = `${a.condition==='above'?'Above':'Below'} $${parseFloat(a.target_price).toLocaleString()}${isTrig?' ✅ Hit!':''}${a.note?' · '+a.note:''}`;
+                return { id: a.id, isUnread, icon, iconBg, iconColor, title, desc };
+            });
+            const unread = items.filter(i => i.isUnread).length;
+            const badge  = document.getElementById('notif-badge');
+            if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? 'flex' : 'none'; }
+            if (!items.length) {
+                list.innerHTML = '<div class="notif-empty">🔕 No alerts yet.<br><a href="alerts.html" style="color:var(--cyan)">Create your first alert →</a></div>';
+                return;
+            }
+            list.innerHTML = items.map(item => `
+                <div class="notif-item ${item.isUnread ? 'unread' : ''}" onclick="markIdRead(${item.id});this.classList.remove('unread')">
+                    <div class="notif-dot-icon" style="background:${item.iconBg};color:${item.iconColor}">${item.icon}</div>
+                    <div class="notif-body">
+                        <div class="notif-title-text">${item.title}</div>
+                        <div class="notif-sub-text">${item.desc}</div>
+                    </div>
+                </div>`).join('');
+        }
+        document.addEventListener('DOMContentLoaded', loadNotifications);
+    </script>
+    <script src="../crypto-api.js"></script>
+<script src="firewall.client.js"></script>
+</body>
+</html>

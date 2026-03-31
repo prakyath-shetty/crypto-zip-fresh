@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Crypto Portfolio Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            overflow: hidden;
+            background: #061a2e;
+        }
+
+        .bg {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at 30% 40%, #0a2540 0%, #061828 45%, #030e1a 100%);
+            z-index: 0;
+        }
+
+        .bg::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 45%;
+            height: 100%;
+            background: radial-gradient(ellipse at right center, rgba(0, 180, 180, 0.12) 0%, transparent 70%);
+        }
+
+        .bokeh-container {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .bokeh {
+            position: absolute;
+            border-radius: 50%;
+            animation: bokehFloat ease-in-out infinite;
+        }
+
+        @keyframes bokehFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        @keyframes drawLine {
+            to { stroke-dashoffset: 0; }
+        }
+
+        .container {
+            background: #111827;
+            padding: 40px 35px;
+            border-radius: 16px;
+            width: 420px;
+            text-align: center;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+            position: relative;
+            z-index: 10;
+        }
+
+        .container h2 {
+            color: #00e5ff;
+            font-size: 26px;
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+        }
+
+        .container p.subtitle {
+            color: #556070;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            margin: 8px 0;
+            border: 1px solid #2a3a4a;
+            border-radius: 8px;
+            background: #1c2a3a;
+            color: #ccc;
+            outline: none;
+            font-size: 14px;
+            transition: border 0.2s;
+        }
+
+        input::placeholder { color: #6b7f8f; }
+
+        input:focus {
+            border-color: #00e5ff;
+            color: white;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        button:hover { opacity: 0.88; }
+
+        .signup-btn {
+            background: linear-gradient(90deg, #00e5ff, #00ff9c);
+            color: #000;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .signup-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .google {
+            background: white;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .apple {
+            background: #1a1a1a;
+            color: white;
+            border: 1px solid #333;
+            font-weight: 500;
+        }
+
+        .or {
+            color: #556070;
+            margin: 14px 0 0;
+            font-size: 13px;
+        }
+
+        .link {
+            margin-top: 18px;
+            font-size: 13px;
+            color: #778899;
+        }
+
+        .link a {
+            color: #00e5ff;
+            text-decoration: none;
+        }
+
+        /* Error / Success messages */
+        .msg {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin: 8px 0;
+            display: none;
+            text-align: left;
+        }
+
+        .msg.error {
+            background: rgba(255, 60, 60, 0.12);
+            border: 1px solid rgba(255, 60, 60, 0.3);
+            color: #ff6b6b;
+            display: block;
+        }
+
+        .msg.success {
+            background: rgba(0, 255, 150, 0.1);
+            border: 1px solid rgba(0, 255, 150, 0.3);
+            color: #00ff96;
+            display: block;
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0,0,0,0.3);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .g-icon {
+            width: 18px;
+            height: 18px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.7 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6C12.2 13 17.6 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8C43.8 37.3 46.5 31.3 46.5 24.5z'/%3E%3Cpath fill='%23FBBC05' d='M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.9-4.7l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.4 0-11.8-3.5-13.6-8.3l-7.8 6C6.6 42.6 14.6 48 24 48z'/%3E%3C/svg%3E") no-repeat center/contain;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg"></div>
+    <div class="bokeh-container" id="bokeh"></div>
+
+    <!-- Vertical bar stems -->
+    <svg style="position:fixed;bottom:0;left:0;width:100%;height:50%;z-index:2;opacity:0.12;" viewBox="0 0 1440 300" preserveAspectRatio="none">
+        <g stroke="rgba(0,200,255,1)" stroke-width="1.5">
+            <line x1="60" y1="300" x2="60" y2="180" /><line x1="120" y1="300" x2="120" y2="140" />
+            <line x1="180" y1="300" x2="180" y2="200" /><line x1="240" y1="300" x2="240" y2="120" />
+            <line x1="300" y1="300" x2="300" y2="160" /><line x1="360" y1="300" x2="360" y2="100" />
+            <line x1="420" y1="300" x2="420" y2="140" /><line x1="480" y1="300" x2="480" y2="80" />
+            <line x1="540" y1="300" x2="540" y2="110" /><line x1="600" y1="300" x2="600" y2="60" />
+            <line x1="660" y1="300" x2="660" y2="90" /><line x1="720" y1="300" x2="720" y2="50" />
+            <line x1="780" y1="300" x2="780" y2="80" /><line x1="840" y1="300" x2="840" y2="40" />
+            <line x1="900" y1="300" x2="900" y2="70" /><line x1="960" y1="300" x2="960" y2="30" />
+            <line x1="1020" y1="300" x2="1020" y2="60" /><line x1="1080" y1="300" x2="1080" y2="20" />
+            <line x1="1140" y1="300" x2="1140" y2="50" /><line x1="1200" y1="300" x2="1200" y2="90" />
+            <line x1="1260" y1="300" x2="1260" y2="60" /><line x1="1320" y1="300" x2="1320" y2="30" />
+            <line x1="1380" y1="300" x2="1380" y2="70" />
+        </g>
+    </svg>
+
+    <!-- Animated chart lines -->
+    <svg style="position:fixed;bottom:0;left:0;width:100%;height:60%;z-index:2;" viewBox="0 0 1440 400" preserveAspectRatio="none">
+        <defs>
+            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#00ff9c;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="fillGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#00cfff;stop-opacity:0.15" />
+                <stop offset="100%" style="stop-color:#00cfff;stop-opacity:0" />
+            </linearGradient>
+        </defs>
+        <path style="stroke-dasharray:2200;stroke-dashoffset:2200;animation:drawLine 5s ease forwards;"
+            d="M0,320 L60,300 L120,310 L180,280 L240,295 L300,260 L360,240 L420,255 L480,220 L540,235 L600,195 L660,210 L720,170 L780,185 L840,145 L900,160 L960,120 L1020,140 L1080,100 L1140,115 L1200,140 L1260,110 L1320,80 L1380,100 L1440,85 L1440,400 L0,400 Z"
+            fill="url(#fillGrad)" stroke="none" />
+        <polyline style="stroke-dasharray:2200;stroke-dashoffset:2200;animation:drawLine 5s ease forwards;"
+            points="0,320 60,300 120,310 180,280 240,295 300,260 360,240 420,255 480,220 540,235 600,195 660,210 720,170 780,185 840,145 900,160 960,120 1020,140 1080,100 1140,115 1200,140 1260,110 1320,80 1380,100 1440,85"
+            fill="none" stroke="url(#grad1)" stroke-width="2.5" opacity="0.85" />
+        <polyline style="stroke-dasharray:2200;stroke-dashoffset:2200;animation:drawLine 5s ease forwards 0.8s;"
+            points="0,360 60,345 120,355 180,330 240,345 300,315 360,300 420,312 480,285 540,298 600,268 660,280 720,248 780,260 840,228 900,238 960,205 1020,218 1080,188 1140,200 1200,218 1260,192 1320,168 1380,182 1440,168"
+            fill="none" stroke="rgba(0,180,255,0.4)" stroke-width="1.5" />
+    </svg>
+
+    <!-- Signup Card -->
+    <div class="container">
+        <h2>Create Account</h2>
+        <p class="subtitle">Join Crypto Portfolio Tracker today</p>
+
+        <div id="msg" class="msg"></div>
+
+        <input type="text" id="name" placeholder="Full Name">
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <input type="password" id="confirmPassword" placeholder="Confirm Password">
+
+        <button class="signup-btn" id="signupBtn" onclick="handleSignup()">
+            <div class="spinner" id="spinner"></div>
+            <span id="signupText">Create Account</span>
+        </button>
+
+        <p class="or">OR</p>
+        <button class="google" onclick="signUpWithGoogle()"><span class="g-icon"></span> Continue with Google</button>
+        <!-- Apple Sign-In hidden until Apple Developer account is set up -->
+        <!-- <button class="apple" onclick="signUpWithApple()">🍎 Continue with Apple</button> -->
+
+        <div class="link">Already have an account? <a href="../index.html">Login</a></div>
+    </div>
+
+    <script>
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-backend-d9v8.onrender.com/api';
+
+        async function handleSignup() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            const msg = document.getElementById('msg');
+            const btn = document.getElementById('signupBtn');
+            const spinner = document.getElementById('spinner');
+            const signupText = document.getElementById('signupText');
+
+            // Clear previous message
+            msg.className = 'msg';
+            msg.textContent = '';
+
+            // Validate
+            if (!name || !email || !password || !confirmPassword) {
+                msg.className = 'msg error';
+                msg.textContent = '⚠️ All fields are required.';
+                return;
+            }
+
+            if (password.length < 6) {
+                msg.className = 'msg error';
+                msg.textContent = '⚠️ Password must be at least 6 characters.';
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                msg.className = 'msg error';
+                msg.textContent = '⚠️ Passwords do not match.';
+                return;
+            }
+
+            // Loading state
+            btn.disabled = true;
+            spinner.style.display = 'block';
+            signupText.textContent = 'Creating account...';
+
+            try {
+                const res = await fetch(`${API}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    // Save token and user info
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    msg.className = 'msg success';
+                    msg.textContent = '✅ Account created! Redirecting to dashboard...';
+
+                    setTimeout(() => {
+                        window.location.href = '../pages/dashboard.html';
+                    }, 800);
+                } else {
+                    msg.className = 'msg error';
+                    msg.textContent = '❌ ' + data.message;
+                    btn.disabled = false;
+                    spinner.style.display = 'none';
+                    signupText.textContent = 'Create Account';
+                }
+
+            } catch (err) {
+                msg.className = 'msg error';
+                msg.textContent = '❌ Cannot connect to server. Make sure backend is running.';
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                signupText.textContent = 'Create Account';
+            }
+        }
+
+        // Allow Enter key to submit
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleSignup();
+        });
+
+        // Note: redirect handled by Supabase session check above
+
+        // Bokeh animation
+        const bokeh = document.getElementById('bokeh');
+        const colors = [
+            'rgba(0,229,255,OP)', 'rgba(0,180,255,OP)', 'rgba(255,80,80,OP)',
+            'rgba(255,160,0,OP)', 'rgba(180,0,255,OP)', 'rgba(0,255,150,OP)',
+            'rgba(255,100,200,OP)',
+        ];
+        for (let i = 0; i < 60; i++) {
+            const d = document.createElement('div');
+            d.className = 'bokeh';
+            const size = Math.random() * 16 + 4;
+            const op = (Math.random() * 0.5 + 0.15).toFixed(2);
+            const color = colors[Math.floor(Math.random() * colors.length)].replace('OP', op);
+            d.style.cssText = `
+                width:${size}px; height:${size}px;
+                left:${Math.random() * 100}%;
+                top:${Math.random() * 100}%;
+                background:${color};
+                filter:blur(${size > 10 ? 3 : 1}px);
+                animation-duration:${(Math.random() * 6 + 4).toFixed(1)}s;
+                animation-delay:${(Math.random() * 4).toFixed(1)}s;
+            `;
+            bokeh.appendChild(d);
+        }
+    </script>
+    <script src="firewall.client.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const _authClient = window.supabase.createClient(
+            'https://yxdnpxieraaqozzkmdpo.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4ZG5weGllcmFhcW96emttZHBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MTk0NjIsImV4cCI6MjA4ODk5NTQ2Mn0.sAuH1FgYQ0KbPolnxkOY62D3-uS2u2EJc5wthfUmhYA'
+        );
+
+        // Only process if Google just redirected back (URL has #access_token)
+        const _hasOAuthCallback = window.location.hash.includes('access_token');
+        if (_hasOAuthCallback) {
+            _authClient.auth.onAuthStateChange(async (event, session) => {
+                if (session && event === 'SIGNED_IN') {
+                    const email = session.user.email;
+                    const name = session.user.user_metadata?.full_name || email.split('@')[0];
+                    try {
+                        const res = await fetch('https://crypto-backend-d9v8.onrender.com/api/auth/google-login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email, name })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            localStorage.setItem('token', data.token);
+                            localStorage.setItem('user', JSON.stringify(data.user));
+                            window.location.href = '../pages/dashboard.html';
+                        } else {
+                            const msg = document.getElementById('msg');
+                            msg.className = 'msg error';
+                            msg.textContent = '❌ Login failed: ' + data.message;
+                        }
+                    } catch (err) {
+                        const msg = document.getElementById('msg');
+                        msg.className = 'msg error';
+                        msg.textContent = '❌ Cannot connect to server. Make sure backend is running.';
+                    }
+                }
+            });
+        }
+
+        async function signUpWithGoogle() {
+            await _authClient.auth.signOut();
+            const { error } = await _authClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + '/pages/signup.html',
+                    queryParams: { prompt: 'select_account' }
+                }
+            });
+            if (error) {
+                const msg = document.getElementById('msg');
+                msg.className = 'msg error';
+                msg.textContent = '❌ Google sign-in failed: ' + error.message;
+            }
+        }
+    </script>
+   <script src="../crypto-api.js"></script>
+</body>
+</html>

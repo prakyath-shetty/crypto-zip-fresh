@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Alerts - Crypto Portfolio Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg:#030e1a;--card:#0b1f35;--card2:#0d2540;--border:rgba(0,200,255,0.1);--cyan:#00e5ff;--green:#00ff9c;--red:#ff4d6d;--yellow:#ffd60a;--text:#e0f0ff;--muted:#4a7090;--sidebar-w:240px;--topbar-h:64px;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+        .ticker{background:rgba(0,229,255,0.06);border-bottom:1px solid var(--border);height:36px;overflow:hidden;display:flex;align-items:center;}
+        .ticker-track{display:flex;gap:48px;animation:ticker 60s linear infinite;white-space:nowrap;padding:0 24px;}
+        .ticker-item{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;}
+        .ticker-item .name{color:var(--cyan);}
+        .up{color:var(--green);}.down{color:var(--red);}
+        @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+        .topbar{position:fixed;top:36px;left:0;right:0;height:var(--topbar-h);background:rgba(6,24,40,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;z-index:100;gap:24px;}
+        .logo{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--cyan);margin-right:16px;}
+        .logo span{color:var(--green);}
+        .topbar-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+        .refresh-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite;}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+        .notif-btn{position:relative;background:var(--card);border:1px solid var(--border);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+        .notif-badge{position:absolute;top:-4px;right:-4px;background:var(--red);color:white;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+        .profile-btn{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px 12px;cursor:pointer;}
+        .avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--green));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#000;}
+        .sidebar{position:fixed;top:calc(36px + var(--topbar-h));left:0;width:var(--sidebar-w);height:calc(100vh - 36px - var(--topbar-h));background:rgba(6,24,40,0.95);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;z-index:90;overflow-y:auto;}
+        .sidebar-section{padding:0 16px;margin-bottom:8px;}
+        .sidebar-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px;margin-bottom:8px;margin-top:16px;}
+        .nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:all 0.2s;font-size:14px;color:var(--muted);margin-bottom:2px;}
+        .nav-item:hover{background:rgba(0,229,255,0.06);color:var(--text);}
+        .nav-item.active{background:rgba(0,229,255,0.1);color:var(--cyan);border-left:3px solid var(--cyan);}
+        .nav-icon{font-size:18px;width:24px;text-align:center;}
+        .nav-badge{margin-left:auto;background:var(--red);color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;}
+        .sidebar-bottom{margin-top:auto;padding:16px;border-top:1px solid var(--border);}
+        .logout-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;color:var(--red);font-size:14px;}
+        .logout-btn:hover{background:rgba(255,77,109,0.1);}
+        .main{margin-left:var(--sidebar-w);margin-top:calc(36px + var(--topbar-h));padding:28px;}
+        .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px;}
+        .page-title{font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;}
+        .page-title span{color:var(--cyan);}
+        .add-btn{background:linear-gradient(90deg,var(--cyan),var(--green));border:none;border-radius:10px;padding:11px 22px;color:#000;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:opacity 0.2s;}
+        .add-btn:hover{opacity:0.88;}
+        .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+        .sum-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;}
+        .sum-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+        .sum-card.blue::before{background:linear-gradient(90deg,var(--cyan),transparent);}
+        .sum-card.green::before{background:linear-gradient(90deg,var(--green),transparent);}
+        .sum-card.yellow::before{background:linear-gradient(90deg,var(--yellow),transparent);}
+        .sum-card.red::before{background:linear-gradient(90deg,var(--red),transparent);}
+        .sum-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+        .sum-val{font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;}
+        .sum-card.blue .sum-val{color:var(--cyan);}
+        .sum-card.green .sum-val{color:var(--green);}
+        .sum-card.yellow .sum-val{color:var(--yellow);}
+        .sum-card.red .sum-val{color:var(--red);}
+        .sum-icon{position:absolute;top:16px;right:16px;font-size:26px;opacity:0.2;}
+        .filter-row{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
+        .ftab{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 18px;color:var(--muted);font-size:13px;cursor:pointer;transition:all 0.2s;}
+        .ftab:hover{border-color:var(--cyan);color:var(--text);}
+        .ftab.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,0.08);}
+        .ftab-count{background:rgba(0,229,255,0.15);color:var(--cyan);font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:4px;}
+        .main-grid{display:grid;grid-template-columns:1fr 340px;gap:20px;}
+        .alerts-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;}
+        .card-title{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;margin-bottom:20px;}
+        .alert-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px;display:flex;align-items:center;gap:14px;transition:all 0.2s;position:relative;overflow:hidden;}
+        .alert-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:2px;}
+        .alert-card.waiting::before{background:var(--yellow);}
+        .alert-card.triggered::before{background:var(--green);}
+        .alert-card.inactive::before{background:var(--muted);}
+        .alert-card:hover{border-color:rgba(0,200,255,0.25);}
+        .alert-coin-logo{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;flex-shrink:0;}
+        .alert-info{flex:1;}
+        .alert-title{font-weight:600;font-size:14px;margin-bottom:4px;}
+        .alert-desc{font-size:12px;color:var(--muted);}
+        .alert-progress-wrap{width:100px;}
+        .alert-progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px;}
+        .alert-progress-bar{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;}
+        .alert-progress-fill{height:100%;border-radius:3px;transition:width 0.5s;}
+        .fill-waiting{background:var(--yellow);}
+        .fill-triggered{background:var(--green);}
+        .alert-status-badge{padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap;}
+        .badge-waiting{background:rgba(255,214,10,0.15);color:var(--yellow);}
+        .badge-triggered{background:rgba(0,255,156,0.15);color:var(--green);}
+        .badge-inactive{background:rgba(74,112,144,0.2);color:var(--muted);}
+        .alert-actions{display:flex;gap:6px;flex-shrink:0;}
+        .icon-btn{background:none;border:1px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all 0.2s;}
+        .icon-btn:hover{border-color:var(--cyan);}
+        .icon-btn.del:hover{border-color:var(--red);}
+        .toggle{position:relative;width:40px;height:22px;flex-shrink:0;}
+        .toggle input{opacity:0;width:0;height:0;}
+        .toggle-slider{position:absolute;inset:0;background:var(--card);border-radius:11px;cursor:pointer;transition:0.3s;border:1px solid var(--border);}
+        .toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:var(--muted);border-radius:50%;transition:0.3s;}
+        .toggle input:checked+.toggle-slider{background:rgba(0,255,156,0.2);border-color:var(--green);}
+        .toggle input:checked+.toggle-slider::before{transform:translateX(18px);background:var(--green);}
+        .create-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;}
+        .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+        .form-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+        .form-select{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;outline:none;cursor:pointer;}
+        .form-select option{background:var(--card);}
+        .form-input{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;outline:none;}
+        .form-input:focus,.form-select:focus{border-color:var(--cyan);}
+        .form-input::placeholder{color:var(--muted);}
+        .condition-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+        .condition-btn{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--muted);font-size:13px;cursor:pointer;text-align:center;transition:all 0.2s;}
+        .condition-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,0.08);}
+        .condition-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+        .notify-options{display:flex;gap:8px;flex-wrap:wrap;}
+        .notify-opt{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+        .notify-opt.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,0.08);}
+        .create-btn{width:100%;padding:13px;background:linear-gradient(90deg,var(--cyan),var(--green));border:none;border-radius:10px;color:#000;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;}
+        .create-btn:hover{opacity:0.88;}
+        .prices-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-top:20px;}
+        .price-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(0,200,255,0.05);}
+        .price-row:last-child{border-bottom:none;}
+        .price-coin-logo{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+        .price-info{flex:1;}
+        .price-name{font-weight:600;font-size:13px;}
+        .price-sym{font-size:11px;color:var(--muted);}
+        .price-right{text-align:right;}
+        .live-price{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;}
+        .live-change{font-size:11px;}
+        .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center;}
+        .modal.open{display:flex;}
+        .modal-box{background:#0b1f35;border:1px solid var(--border);border-radius:16px;padding:32px;width:400px;max-width:90vw;text-align:center;}
+        .modal-icon{font-size:48px;margin-bottom:12px;}
+        .modal-title{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--green);margin-bottom:8px;}
+        .modal-desc{font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.6;}
+        .modal-close-btn{background:linear-gradient(90deg,var(--cyan),var(--green));border:none;border-radius:10px;padding:10px 24px;color:#000;font-weight:700;cursor:pointer;font-size:14px;}
+        /* triggered flash animation */
+        @keyframes flash{0%,100%{box-shadow:none}50%{box-shadow:0 0 16px rgba(0,255,156,0.4)}}
+        .alert-card.just-triggered{animation:flash 1s ease 2;}
+        ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+        /* ── NOTIFICATION DROPDOWN ── */
+        .notif-wrap{position:relative;}
+        .notif-dropdown{position:absolute;top:calc(100% + 10px);right:0;width:360px;background:#0b1f35;border:1px solid rgba(0,229,255,0.2);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.6),0 0 40px rgba(0,229,255,0.06);z-index:500;display:none;overflow:hidden;animation:dropIn 0.2s ease;}
+        .notif-dropdown.open{display:block;}
+        @keyframes dropIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+        .notif-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px;border-bottom:1px solid rgba(0,200,255,0.1);}
+        .notif-header-title{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--text);}
+        .notif-mark-all{font-size:12px;color:var(--cyan);cursor:pointer;background:none;border:none;padding:0;}
+        .notif-mark-all:hover{text-decoration:underline;}
+        .notif-list{max-height:340px;overflow-y:auto;}
+        .notif-item{display:flex;align-items:flex-start;gap:12px;padding:13px 18px;border-bottom:1px solid rgba(0,200,255,0.05);cursor:pointer;transition:background 0.15s;position:relative;}
+        .notif-item:last-child{border-bottom:none;}
+        .notif-item:hover{background:rgba(0,229,255,0.04);}
+        .notif-item.unread{background:rgba(0,229,255,0.03);}
+        .notif-item.unread::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cyan);border-radius:0 2px 2px 0;}
+        .notif-dot-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+        .notif-body{flex:1;}
+        .notif-title-text{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.4;}
+        .notif-sub-text{font-size:11px;color:var(--muted);}
+        .notif-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;}
+        .notif-footer{padding:12px 18px;border-top:1px solid rgba(0,200,255,0.08);text-align:center;}
+        .notif-footer a{font-size:13px;color:var(--cyan);cursor:pointer;}
+    </style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker"><div class="ticker-track" id="ticker"><span style="color:var(--muted);padding:0 20px">⏳ Loading live prices...</span></div></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <div class="logo">Crypto<span>Track</span></div>
+    <div class="topbar-right">
+        <div style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;">
+            <div class="refresh-dot"></div>Live • <span id="countdown">30s</span>
+        </div>
+        <div class="notif-wrap" id="notif-wrap">
+            <div class="notif-btn" id="notif-btn" onclick="toggleNotifDropdown()">🔔<div class="notif-badge" id="notif-badge" style="display:none">0</div></div>
+            <div class="notif-dropdown" id="notif-dropdown">
+                <div class="notif-header">
+                    <span class="notif-header-title">🔔 Notifications</span>
+                    <button class="notif-mark-all" onclick="markAllRead()">Mark all read</button>
+                </div>
+                <div class="notif-list" id="notif-list">
+                    <div class="notif-empty">⏳ Loading...</div>
+                </div>
+                <div class="notif-footer"><a onclick="viewTriggered()">View triggered →</a></div>
+            </div>
+        </div>
+        <div class="profile-btn" onclick="location.href='profile.html'"><div class="avatar" id="topbar-avatar">??</div><span id="topbar-name" style="font-size:13px">Loading...</span></div>
+    </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="sidebar-section">
+        <div class="sidebar-label">Main Menu</div>
+        <div class="nav-item" onclick="location.href='dashboard.html'"><span class="nav-icon">🏠</span> Dashboard</div>
+        <div class="nav-item" onclick="location.href='portfolio.html'"><span class="nav-icon">📊</span> Portfolio</div>
+        <div class="nav-item" onclick="location.href='market.html'"><span class="nav-icon">🌍</span> Live Market</div>
+        <div class="nav-item" onclick="location.href='watchlist.html'"><span class="nav-icon">⭐</span> Watchlist</div>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-label">Tools</div>
+        <div class="nav-item active"><span class="nav-icon">🔔</span> Alerts <span class="nav-badge" id="waiting-badge" style="display:none">0</span></div>
+        <div class="nav-item" onclick="location.href='history.html'"><span class="nav-icon">🧾</span> Transaction History</div>
+        <div class="nav-item" onclick="location.href='news.html'"><span class="nav-icon">📰</span> News</div>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-label">Account</div>
+        <div class="nav-item" onclick="location.href='profile.html'"><span class="nav-icon">👤</span> Profile</div>
+    </div>
+    <div class="sidebar-bottom">
+        <div class="logout-btn" onclick="handleLogout()"><span>🚪</span> Logout</div>
+    </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-title">🔔 Price <span>Alerts</span></div>
+        <button class="add-btn" onclick="document.getElementById('targetPrice').focus()">＋ New Alert</button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+        <div class="sum-card blue">
+            <div class="sum-label">Total Alerts</div>
+            <div class="sum-val" id="total-count">0</div>
+            <div class="sum-icon">🔔</div>
+        </div>
+        <div class="sum-card yellow">
+            <div class="sum-label">Waiting</div>
+            <div class="sum-val" id="waiting-count">0</div>
+            <div class="sum-icon">⏳</div>
+        </div>
+        <div class="sum-card green">
+            <div class="sum-label">Triggered</div>
+            <div class="sum-val" id="triggered-count">0</div>
+            <div class="sum-icon">✅</div>
+        </div>
+        <div class="sum-card red">
+            <div class="sum-label">Inactive</div>
+            <div class="sum-val" id="inactive-count">0</div>
+            <div class="sum-icon">🔕</div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-row">
+        <div class="ftab active" onclick="filterAlerts('all',this)">All <span class="ftab-count" id="fc-all">0</span></div>
+        <div class="ftab" onclick="filterAlerts('waiting',this)">⏳ Waiting <span class="ftab-count" id="fc-waiting">0</span></div>
+        <div class="ftab" onclick="filterAlerts('triggered',this)">✅ Triggered <span class="ftab-count" id="fc-triggered">0</span></div>
+        <div class="ftab" onclick="filterAlerts('inactive',this)">🔕 Inactive <span class="ftab-count" id="fc-inactive">0</span></div>
+    </div>
+
+    <!-- Main Grid: Alerts list + Create form -->
+    <div class="main-grid">
+
+        <!-- Left: Alerts List -->
+        <div class="alerts-card">
+            <div class="card-title">Your Alerts</div>
+            <div id="alertsList">
+                <div style="text-align:center;padding:40px;color:var(--muted)">⏳ Loading alerts...</div>
+            </div>
+        </div>
+
+        <!-- Right: Create Alert + Live Prices -->
+        <div>
+            <div class="create-card">
+                <div class="card-title">➕ Create Alert</div>
+
+                <div class="form-group">
+                    <div class="form-label">Coin</div>
+                    <select class="form-select" id="coinSelect"></select>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-label">Condition</div>
+                    <div class="condition-row">
+                        <div class="condition-btn active" id="cond-above" onclick="setCondition('above')">📈 Price Goes Above</div>
+                        <div class="condition-btn" id="cond-below" onclick="setCondition('below')">📉 Price Goes Below</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-label">Target Price (USD)</div>
+                    <input class="form-input" id="targetPrice" type="number" placeholder="e.g. 75000" min="0" step="any">
+                </div>
+
+                <div class="form-group">
+                    <div class="form-label">Note (Optional)</div>
+                    <input class="form-input" id="alertNote" type="text" placeholder="e.g. Take profit level">
+                </div>
+
+                <div class="form-group">
+    <div class="form-label">Notifications</div>
+    <div class="notify-options">
+    <div class="notify-opt active">🔔 In-App (Always On)</div>
+    <div class="notify-opt" style="opacity:0.5;cursor:not-allowed;">📧 Email (Auto)</div>
+
+</div>
+</div>
+                    <div style="font-size:11px;color:var(--muted);margin-top:6px" id="notif-note">In-App alerts are always active. Email alerts are sent automatically. </div>
+                </div>
+
+                <button class="create-btn" id="createAlertBtn" onclick="createAlert()">🔔 Create Alert</button>
+            </div>
+
+            <!-- Live Prices Box -->
+            <div class="prices-box">
+                <div class="card-title">📡 Live Prices</div>
+                <div id="pricesList">
+                    <div style="text-align:center;padding:20px;color:var(--muted)">⏳ Loading...</div>
+                </div>
+                <div id="prices-updated" style="font-size:11px;color:var(--muted);margin-top:10px;text-align:right"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal" id="successModal">
+    <div class="modal-box">
+        <div class="modal-icon">🔔</div>
+        <div class="modal-title">Alert Created!</div>
+        <div class="modal-desc" id="modal-desc">Your price alert has been set.</div>
+        <button class="modal-close-btn" onclick="document.getElementById('successModal').classList.remove('open')">Got it!</button>
+    </div>
+</div>
+
+<!-- Triggered Modal -->
+<div class="modal" id="triggeredModal">
+    <div class="modal-box">
+        <div class="modal-icon">🚨</div>
+        <div class="modal-title" style="color:var(--green)">Alert Triggered!</div>
+        <div class="modal-desc" id="triggered-desc">A price alert has been triggered!</div>
+        <button class="modal-close-btn" onclick="document.getElementById('triggeredModal').classList.remove('open')">View Alerts</button>
+    </div>
+</div>
+
+<script>
+    // ═══════════════════ CONFIG ═══════════════════
+    const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-backend-d9v8.onrender.com/api';
+    const params = new URLSearchParams(window.location.search);
+const alertIdFromURL = params.get('alertId');
+    const token = localStorage.getItem('token');
+    const user  = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!token || !user) { window.location.href = '../index.html'; }
+
+    function handleLogout() {
+        localStorage.removeItem('token'); localStorage.removeItem('user');
+        window.location.href = '../index.html';
+    }
+
+    // ── COIN CONFIG ──
+    const COINS = [
+        { id:'bitcoin',     sym:'BTC', name:'Bitcoin',   logo:'₿', color:'#f7931a', bg:'rgba(247,147,26,0.15)' },
+        { id:'ethereum',    sym:'ETH', name:'Ethereum',  logo:'Ξ', color:'#627eea', bg:'rgba(98,126,234,0.15)' },
+        { id:'solana',      sym:'SOL', name:'Solana',    logo:'◎', color:'#9945ff', bg:'rgba(153,69,255,0.15)' },
+        { id:'binancecoin', sym:'BNB', name:'BNB',       logo:'B', color:'#f0b90b', bg:'rgba(240,185,11,0.15)' },
+        { id:'cardano',     sym:'ADA', name:'Cardano',   logo:'A', color:'#0072ff', bg:'rgba(0,114,255,0.15)'  },
+        { id:'avalanche-2', sym:'AVAX',name:'Avalanche', logo:'A', color:'#e84142', bg:'rgba(232,65,66,0.15)'  },
+        { id:'ripple',      sym:'XRP', name:'XRP',       logo:'X', color:'#00aae4', bg:'rgba(0,170,228,0.15)'  },
+        { id:'dogecoin',    sym:'DOGE',name:'Dogecoin',  logo:'D', color:'#c2a633', bg:'rgba(194,166,51,0.15)' },
+    ];
+    const COIN_MAP = {};
+    COINS.forEach(c => { COIN_MAP[c.id] = c; COIN_MAP[c.sym.toLowerCase()] = c; });
+    const COIN_IDS = COINS.map(c => c.id).join(',');
+
+    // ── STATE ──
+    let livePrices    = {};
+    let alerts        = [];
+    let currentFilter = 'all';
+    let condition     = 'above';
+
+    // ── FORMAT ──
+    function fmtP(v) {
+        if (!v) return '$0';
+        if (v >= 1000) return '$' + v.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (v >= 1)    return '$' + v.toFixed(2);
+        return '$' + v.toFixed(4);
+    }
+
+    // ── TOPBAR USER ──
+    function loadUser() {
+        if (!user) return;
+        const full = user.name || 'User';
+        const ini  = full.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        const av   = document.getElementById('topbar-avatar');
+        const nm   = document.getElementById('topbar-name');
+        if (av) av.textContent = ini;
+        if (nm) nm.textContent = full;
+    }
+
+    // ── FETCH ALERTS FROM BACKEND ──
+    async function loadAlerts() {
+        try {
+            const res  = await fetch(`${API}/alerts`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message);
+            alerts = (data.alerts || []).map(a => ({
+                id:        a.id,
+                coinId:    a.coin_id,
+                sym:       a.symbol,
+                name:      a.coin_name,
+                logo:      COIN_MAP[a.coin_id]?.logo  || a.symbol?.[0] || '?',
+                color:     COIN_MAP[a.coin_id]?.color || '#00e5ff',
+                bg:        COIN_MAP[a.coin_id]?.bg    || 'rgba(0,229,255,0.1)',
+                condition: a.condition,
+                target:    parseFloat(a.target_price),
+                status:    a.status || 'waiting',
+                active:    a.status !== 'inactive',
+                note:      a.note || ''
+            }));
+            updateCounts();
+            renderAlerts();
+          
+
+// 👇 highlight alert from email
+if (alertIdFromURL) {
+     currentFilter = 'triggered';
+    setTimeout(() => {
+        const el = document.getElementById(`alert-${alertIdFromURL}`);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // highlight effect
+            el.classList.add('just-triggered');
+
+            // remove highlight after few seconds
+            setTimeout(() => {
+                el.classList.remove('just-triggered');
+            }, 4000);
+        }
+    }, 500);
+}
+        } catch (err) {
+            console.error('Load alerts error:', err);
+            document.getElementById('alertsList').innerHTML =
+                `<div style="text-align:center;padding:40px;color:var(--muted)">⚠️ Could not load alerts. Make sure backend is running.</div>`;
+        }
+    }
+
+    // ── CREATE ALERT → BACKEND ──
+    async function createAlert() {
+        const sel    = document.getElementById('coinSelect');
+        const opt    = sel.options[sel.selectedIndex];
+        const target = parseFloat(document.getElementById('targetPrice').value);
+        const note   = document.getElementById('alertNote').value;
+
+        if (!target || target <= 0) { showToast('Please enter a valid target price!', true); return; }
+
+        const btn = document.getElementById('createAlertBtn');
+        btn.textContent = '⏳ Creating...';
+        btn.disabled = true;
+
+        try {
+            const res  = await fetch(`${API}/alerts`, {
+                method:  'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    coin_id:      sel.value,
+                    coin_name:    opt.dataset.name,
+                    symbol:       opt.dataset.sym,
+                    condition,
+                    target_price: target,
+                    note
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message);
+
+            // Reload alerts from backend
+            await loadAlerts();
+
+            document.getElementById('targetPrice').value = '';
+            document.getElementById('alertNote').value   = '';
+            document.getElementById('modal-desc').textContent =
+                `Alert set for ${opt.dataset.name} — price ${condition} ${fmtP(target)}. Auto-checking every 30 seconds!`;
+            document.getElementById('successModal').classList.add('open');
+
+        } catch (err) {
+            showToast(err.message || 'Could not create alert', true);
+        } finally {
+            btn.textContent = '🔔 Create Alert';
+            btn.disabled = false;
+        }
+    }
+
+    // ── DELETE ALERT → BACKEND ──
+    async function deleteAlert(id) {
+        if (!confirm('Delete this alert?')) return;
+        try {
+            const res = await fetch(`${API}/alerts/${id}`, {
+                method:  'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Delete failed');
+            alerts = alerts.filter(a => a.id !== id);
+            updateCounts();
+            renderAlerts();
+            showToast('Alert deleted!');
+        } catch (err) {
+            showToast(err.message || 'Could not delete alert', true);
+        }
+    }
+
+    // ── TOGGLE ALERT STATUS → BACKEND ──
+    async function toggleAlert(id, cb) {
+        const a = alerts.find(x => x.id === id);
+        if (!a) return;
+        const newStatus = cb.checked ? 'waiting' : 'inactive';
+        try {
+            await fetch(`${API}/alerts/${id}/status`, {
+                method:  'PATCH',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            a.active = cb.checked;
+            a.status = newStatus;
+            updateCounts();
+            renderAlerts();
+        } catch (err) {
+            showToast('Could not update alert', true);
+            cb.checked = !cb.checked; // revert toggle
+        }
+    }
+
+    // ── LIVE PRICE FETCH (via backend — single round-trip: prices + alert check) ──
+    async function fetchPrices() {
+        try {
+            const res = await fetch(`${API}/alerts/prices?ids=${COIN_IDS}`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+                signal: AbortSignal.timeout(10000)
+            });
+            if (!res.ok) throw new Error('Price fetch failed');
+            const data = await res.json();
+
+            // Unpack prices into the same shape the rest of the UI expects
+            livePrices = data.prices || {};
+
+            // Handle newly triggered alerts returned from backend
+            if (data.triggered?.length > 0) {
+                data.triggered.forEach(t => {
+                    const local = alerts.find(a => a.id === t.id);
+                    if (local) { local.status = 'triggered'; local.active = false; }
+                });
+                const first = data.triggered[0];
+                document.getElementById('triggered-desc').textContent =
+                    `${first.coin_name} (${first.symbol}) price ${first.condition === 'above' ? 'went above' : 'went below'} ${fmtP(parseFloat(first.target_price))}! Current: ${fmtP(first.current_price)}`;
+                document.getElementById('triggeredModal').classList.add('open');
+                updateCounts();
+            }
+
+            renderAlerts();
+            renderPricesBox();
+            updateTicker();
+            const el = document.getElementById('prices-updated');
+            if (el) el.textContent = 'Updated: ' + new Date().toLocaleTimeString();
+        } catch (e) { console.error('Price fetch error:', e); }
+    }
+
+    // ── RENDER ALERTS ──
+    function renderAlerts() {
+        const list     = document.getElementById('alertsList');
+        const filtered = currentFilter === 'all' ? alerts : alerts.filter(a => a.status === currentFilter);
+        if (!filtered.length) {
+            const msg = alerts.length === 0
+                ? '📭 No alerts yet. Create your first price alert!'
+                : 'No alerts in this category.';
+            list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">${msg}</div>`;
+            return;
+        }
+        list.innerHTML = filtered.map(a => {
+            const px   = livePrices[a.coinId]?.usd || 0;
+            let prog   = 0;
+            if (a.condition === 'above' && a.target > 0) prog = Math.min(100, Math.round((px / a.target) * 100));
+            else if (a.condition === 'below' && px > 0)  prog = Math.min(100, Math.round((a.target / px) * 100));
+            if (a.status === 'triggered') prog = 100;
+
+            return `<div class="alert-card ${a.status}" id="alert-${a.id}">
+                <label class="toggle"><input type="checkbox" ${a.active ? 'checked' : ''} onchange="toggleAlert(${a.id},this)"><span class="toggle-slider"></span></label>
+                <div class="alert-coin-logo" style="background:${a.bg};color:${a.color}">${a.logo}</div>
+                <div class="alert-info">
+                    <div class="alert-title">${a.name} (${a.sym}) — ${a.condition === 'above' ? 'Above' : 'Below'} ${fmtP(a.target)}</div>
+                    <div class="alert-desc">${a.note || 'No note'} &nbsp;•&nbsp; Live: ${px ? fmtP(px) : '⏳ Loading...'}</div>
+                </div>
+                <div class="alert-progress-wrap">
+                    <div class="alert-progress-label"><span>0%</span><span>${prog}%</span></div>
+                    <div class="alert-progress-bar"><div class="alert-progress-fill ${a.status === 'triggered' ? 'fill-triggered' : 'fill-waiting'}" style="width:${prog}%"></div></div>
+                </div>
+                <div><div class="alert-status-badge badge-${a.status}">${a.status === 'waiting' ? '⏳ Waiting' : a.status === 'triggered' ? '✅ Triggered' : '🔕 Inactive'}</div></div>
+                <div class="alert-actions">
+                    <button class="icon-btn del" title="Delete" onclick="deleteAlert(${a.id})">🗑️</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ── RENDER PRICES BOX ──
+    function renderPricesBox() {
+        document.getElementById('pricesList').innerHTML = COINS.slice(0, 6).map(c => {
+            const p  = livePrices[c.id];
+            const px = p?.usd || 0;
+            const ch = p?.usd_24h_change || 0;
+            const up = ch >= 0;
+            return `<div class="price-row">
+                <div class="price-coin-logo" style="background:${c.bg};color:${c.color}">${c.logo}</div>
+                <div class="price-info"><div class="price-name">${c.name}</div><div class="price-sym">${c.sym}</div></div>
+                <div class="price-right">
+                    <div class="live-price">${px ? fmtP(px) : '⏳'}</div>
+                    <div class="live-change ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}%</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ── TICKER ──
+    function updateTicker() {
+        const items = COINS.map(c => {
+            const p  = livePrices[c.id];
+            if (!p) return '';
+            const ch = p.usd_24h_change || 0;
+            return `<div class="ticker-item"><span class="name">${c.sym}</span><span>${fmtP(p.usd)}</span><span class="${ch >= 0 ? 'up' : 'down'}">${ch >= 0 ? '▲' : '▼'}${Math.abs(ch).toFixed(2)}%</span></div>`;
+        }).filter(Boolean);
+        document.getElementById('ticker').innerHTML = [...items, ...items].join('');
+    }
+
+    // ── UPDATE COUNTS ──
+    function updateCounts() {
+        const total     = alerts.length;
+        const waiting   = alerts.filter(a => a.status === 'waiting').length;
+        const triggered = alerts.filter(a => a.status === 'triggered').length;
+        const inactive  = alerts.filter(a => a.status === 'inactive').length;
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        set('total-count',     total);
+        set('waiting-count',   waiting);
+        set('triggered-count', triggered);
+        set('inactive-count',  inactive);
+        set('fc-all',          total);
+        set('fc-waiting',      waiting);
+        set('fc-triggered',    triggered);
+        set('fc-inactive',     inactive);
+        // Dynamic badge — driven from notification panel
+        renderNotifDropdown();
+    }
+
+    // ── FILTER ──
+    function filterAlerts(f, el) {
+        currentFilter = f;
+        document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        renderAlerts();
+    }
+
+    // ── NOTIFY VIA TOGGLES ──
+    // Email alerts are sent automatically server-side when an alert triggers.
+    // The in-app toggle is kept for UI consistency; push is not yet implemented.
+    const notifState = { inapp: true };
+   
+
+    function setCondition(c) {
+        condition = c;
+        document.getElementById('cond-above').classList.toggle('active', c === 'above');
+        document.getElementById('cond-below').classList.toggle('active', c === 'below');
+    }
+
+    // ── POPULATE COIN SELECT ──
+    function populateCoinSelect() {
+        document.getElementById('coinSelect').innerHTML = COINS.map(c =>
+            `<option value="${c.id}" data-sym="${c.sym}" data-name="${c.name}" data-logo="${c.logo}" data-color="${c.color}" data-bg="${c.bg}">${c.logo} ${c.name} (${c.sym})</option>`
+        ).join('');
+    }
+
+    // ── TOAST ──
+    function showToast(msg, isError = false) {
+        let t = document.getElementById('toast-msg');
+        if (!t) {
+            t = document.createElement('div');
+            t.id = 'toast-msg';
+            t.style.cssText = 'position:fixed;bottom:32px;right:32px;padding:12px 22px;border-radius:10px;font-weight:700;font-size:14px;z-index:999;transition:all 0.3s;transform:translateY(80px);opacity:0;';
+            document.body.appendChild(t);
+        }
+        t.textContent = (isError ? '❌ ' : '✅ ') + msg;
+        t.style.background = isError ? 'var(--red)' : 'var(--green)';
+        t.style.color = '#000';
+        t.style.transform = 'translateY(0)';
+        t.style.opacity = '1';
+        setTimeout(() => { t.style.transform = 'translateY(80px)'; t.style.opacity = '0'; }, 3000);
+    }
+
+    // ── NOTIFICATION DROPDOWN ──
+    const NOTIF_KEY = 'cryptotrack_read_notifs';
+    function getReadIds() { try { return JSON.parse(localStorage.getItem(NOTIF_KEY)||'[]'); } catch(e){ return []; } }
+    function markIdRead(id) {
+        const ids = getReadIds();
+        if (!ids.includes(id)) { ids.push(id); localStorage.setItem(NOTIF_KEY, JSON.stringify(ids)); }
+    }
+    function markAllRead() {
+        const ids = alerts.map(a => a.id);
+        localStorage.setItem(NOTIF_KEY, JSON.stringify(ids));
+        renderNotifDropdown();
+    }
+    function toggleNotifDropdown() {
+        document.getElementById('notif-dropdown').classList.toggle('open');
+    }
+    document.addEventListener('click', e => {
+        const wrap = document.getElementById('notif-wrap');
+        if (wrap && !wrap.contains(e.target)) {
+            document.getElementById('notif-dropdown')?.classList.remove('open');
+        }
+    });
+
+    function renderNotifDropdown() {
+        const readIds = getReadIds();
+        const list = document.getElementById('notif-list');
+        if (!list) return;
+
+        const items = alerts.map(a => {
+            const isUnread = !readIds.includes(a.id);
+            const isTrig = a.status === 'triggered';
+            const icon = isTrig ? '🚨' : a.status === 'waiting' ? '⏳' : '🔕';
+            const iconBg = isTrig ? 'rgba(0,255,156,0.15)' : a.status === 'waiting' ? 'rgba(255,214,10,0.12)' : 'rgba(74,112,144,0.15)';
+            const iconColor = isTrig ? 'var(--green)' : a.status === 'waiting' ? 'var(--yellow)' : 'var(--muted)';
+            const title = isTrig ? `🚨 ${a.name} alert triggered!` : `${a.name} — watching ${a.condition} ${fmtP(a.target)}`;
+            const desc = `${a.condition === 'above' ? 'Above' : 'Below'} ${fmtP(a.target)}${isTrig ? ' ✅ Hit!' : ''}${a.note ? ' · ' + a.note : ''}`;
+            return { id: a.id, isUnread, icon, iconBg, iconColor, title, desc };
+        });
+
+        const unread = items.filter(i => i.isUnread).length;
+        const badge = document.getElementById('notif-badge');
+        const sideB = document.getElementById('waiting-badge');
+        const waiting = alerts.filter(a => a.status === 'waiting').length;
+        if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? 'flex' : 'none'; }
+        if (sideB) { sideB.textContent = waiting; sideB.style.display = waiting > 0 ? 'inline-block' : 'none'; }
+
+        if (!items.length) {
+            list.innerHTML = `<div class="notif-empty">🔕 No alerts yet. Create your first alert below.</div>`;
+            return;
+        }
+        list.innerHTML = items.map(item => `
+            <div class="notif-item ${item.isUnread ? 'unread' : ''}" onclick="markIdRead(${item.id});this.classList.remove('unread');renderNotifDropdown()">
+                <div class="notif-dot-icon" style="background:${item.iconBg};color:${item.iconColor}">${item.icon}</div>
+                <div class="notif-body">
+                    <div class="notif-title-text">${item.title}</div>
+                    <div class="notif-sub-text">${item.desc}</div>
+                </div>
+            </div>`).join('');
+    }
+
+    // ── AUTO REFRESH ──
+    let cd = 30;
+    setInterval(() => {
+        cd--;
+        if (cd <= 0) { cd = 30; fetchPrices(); }
+        document.getElementById('countdown').textContent = cd + 's';
+    }, 1000);
+
+    // ── INIT ──
+    document.addEventListener('DOMContentLoaded', () => {
+        loadUser();
+        populateCoinSelect();
+        loadAlerts();
+        fetchPrices();
+    });
+</script>
+<script src="../crypto-api.js"></script>
+<script src="firewall.client.js"></script>
+</body>
+</html>

@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watchlist - Crypto Portfolio Tracker</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg: #030e1a;
+            --card: #0b1f35;
+            --card2: #0d2540;
+            --border: rgba(0, 200, 255, 0.1);
+            --cyan: #00e5ff;
+            --green: #00ff9c;
+            --red: #ff4d6d;
+            --yellow: #ffd60a;
+            --text: #e0f0ff;
+            --muted: #4a7090;
+            --sidebar-w: 240px;
+            --topbar-h: 64px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .ticker {
+            background: rgba(0, 229, 255, 0.06);
+            border-bottom: 1px solid var(--border);
+            height: 36px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        .ticker-track {
+            display: flex;
+            gap: 48px;
+            animation: ticker 30s linear infinite;
+            white-space: nowrap;
+            padding: 0 24px;
+        }
+
+        .ticker-item {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ticker-item .name {
+            color: var(--cyan);
+        }
+
+        .up {
+            color: var(--green);
+        }
+
+        .down {
+            color: var(--red);
+        }
+
+        @keyframes ticker {
+            from {
+                transform: translateX(0)
+            }
+
+            to {
+                transform: translateX(-50%)
+            }
+        }
+
+        .topbar {
+            position: fixed;
+            top: 36px;
+            left: 0;
+            right: 0;
+            height: var(--topbar-h);
+            background: rgba(6, 24, 40, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 100;
+            gap: 24px;
+        }
+
+        .logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--cyan);
+            margin-right: 16px;
+        }
+
+        .logo span {
+            color: var(--green);
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .refresh-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.3
+            }
+        }
+
+        .notif-btn {
+            position: relative;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--red);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .notif-badge.hidden { display: none; }
+
+        .profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cyan), var(--green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: #000;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: calc(36px + var(--topbar-h));
+            left: 0;
+            width: var(--sidebar-w);
+            height: calc(100vh - 36px - var(--topbar-h));
+            background: rgba(6, 24, 40, 0.95);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0;
+            z-index: 90;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            padding: 0 16px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 0 8px;
+            margin-bottom: 8px;
+            margin-top: 16px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 2px;
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 229, 255, 0.06);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--cyan);
+            border-left: 3px solid var(--cyan);
+        }
+
+        .nav-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--red);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--red);
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 77, 109, 0.1);
+        }
+
+        .main {
+            margin-left: var(--sidebar-w);
+            margin-top: calc(36px + var(--topbar-h));
+            padding: 28px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .page-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .page-title span {
+            color: var(--cyan);
+        }
+
+        .add-btn {
+            background: linear-gradient(90deg, var(--cyan), var(--green));
+            border: none;
+            border-radius: 10px;
+            padding: 11px 22px;
+            color: #000;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-btn:hover {
+            opacity: 0.88;
+        }
+
+        /* Summary */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .sum-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sum-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+        }
+
+        .sum-card.blue::before {
+            background: linear-gradient(90deg, var(--cyan), transparent);
+        }
+
+        .sum-card.green::before {
+            background: linear-gradient(90deg, var(--green), transparent);
+        }
+
+        .sum-card.red::before {
+            background: linear-gradient(90deg, var(--red), transparent);
+        }
+
+        .sum-card.yellow::before {
+            background: linear-gradient(90deg, var(--yellow), transparent);
+        }
+
+        .sum-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .sum-val {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .sum-card.blue .sum-val {
+            color: var(--cyan);
+        }
+
+        .sum-card.green .sum-val {
+            color: var(--green);
+        }
+
+        .sum-card.red .sum-val {
+            color: var(--red);
+        }
+
+        .sum-card.yellow .sum-val {
+            color: var(--yellow);
+        }
+
+        .sum-icon {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 26px;
+            opacity: 0.2;
+        }
+
+        /* Search bar */
+        .search-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .search-wrap {
+            position: relative;
+            flex: 1;
+            max-width: 320px;
+        }
+
+        .search-icon-pos {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .search-input {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px 10px 36px;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+        }
+
+        .search-input:focus {
+            border-color: var(--cyan);
+        }
+
+        .search-input::placeholder {
+            color: var(--muted);
+        }
+
+        .sort-select {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .sort-select option {
+            background: var(--card);
+        }
+
+        /* Main layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
+        }
+
+        /* Watchlist cards grid */
+        .watchlist-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        /* Single watchlist coin card */
+        .watch-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .watch-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--coin-color, var(--cyan)), transparent);
+        }
+
+        .watch-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 229, 255, 0.08);
+            border-color: rgba(0, 200, 255, 0.25);
+        }
+
+        .watch-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .watch-coin-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .watch-logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .watch-name {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .watch-sym {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .remove-btn:hover {
+            color: var(--red);
+            background: rgba(255, 77, 109, 0.1);
+        }
+
+        .watch-price {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .watch-change {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        .watch-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .wstat {
+            background: var(--card2);
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+
+        .wstat-label {
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+
+        .wstat-val {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .watch-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .alert-btn {
+            flex: 1;
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px;
+            color: var(--text);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .alert-btn:hover {
+            border-color: var(--yellow);
+            color: var(--yellow);
+        }
+
+        .chart-mini-wrap {
+            width: 100%;
+            height: 70px;
+            margin-bottom: 14px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.15);
+        }
+        .chart-mini-wrap svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Add coin panel */
+        .add-panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .card-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .coin-search-input {
+            width: 100%;
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 11px 14px;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 14px;
+        }
+
+        .coin-search-input:focus {
+            border-color: var(--cyan);
+        }
+
+        .coin-search-input::placeholder {
+            color: var(--muted);
+        }
+
+        .coin-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .coin-option:hover {
+            background: var(--card2);
+        }
+
+        .coin-opt-logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .coin-opt-info {
+            flex: 1;
+        }
+
+        .coin-opt-name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .coin-opt-price {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .coin-opt-change {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .add-coin-btn {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 5px 10px;
+            color: var(--muted);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-coin-btn:hover {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .add-coin-btn.added {
+            border-color: var(--green);
+            color: var(--green);
+            background: rgba(0, 255, 156, 0.1);
+        }
+
+        /* Top movers */
+        .movers-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+
+        .mover-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid rgba(0, 200, 255, 0.05);
+        }
+
+        .mover-item:last-child {
+            border-bottom: none;
+        }
+
+        .mover-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .mover-info {
+            flex: 1;
+        }
+
+        .mover-name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .mover-price {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .mover-change {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        /* ── DETAIL CHART MODAL ── */
+        .detail-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:500; display:none; align-items:center; justify-content:center; padding:20px; }
+        .detail-overlay.open { display:flex; }
+        .detail-modal { background:#0b1f35; border:1px solid rgba(0,200,255,0.2); border-radius:20px; width:860px; max-width:96vw; padding:28px 32px; position:relative; box-shadow:0 30px 80px rgba(0,0,0,0.6); }
+        .detail-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+        .detail-coin-info { display:flex; align-items:center; gap:14px; }
+        .detail-logo { width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; }
+        .detail-name { font-family:'Rajdhani',sans-serif; font-size:24px; font-weight:700; }
+        .detail-sym { font-size:13px; color:var(--muted); }
+        .detail-price-box { text-align:right; }
+        .detail-price { font-family:'Rajdhani',sans-serif; font-size:30px; font-weight:700; }
+        .detail-close { background:none; border:1px solid var(--border); color:var(--muted); width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+        .detail-close:hover { border-color:var(--cyan); color:var(--text); }
+        .detail-stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+        .dstat { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
+        .dstat-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:5px; }
+        .dstat-val { font-family:'Rajdhani',sans-serif; font-size:18px; font-weight:700; }
+        .detail-chart-wrap { position:relative; background:rgba(0,0,0,0.2); border-radius:12px; padding:16px; border:1px solid var(--border); margin-bottom:16px; }
+        .detail-tooltip { position:absolute; top:10px; left:50%; transform:translateX(-50%); background:#0b1f35; border:1px solid rgba(0,229,255,0.3); border-radius:8px; padding:6px 14px; font-size:13px; pointer-events:none; white-space:nowrap; opacity:0; transition:opacity 0.2s; }
+        .detail-tooltip.show { opacity:1; }
+        .date-labels { display:flex; justify-content:space-between; padding:0 4px; margin-bottom:12px; }
+        .date-label { font-size:10px; color:var(--muted); cursor:pointer; transition:color 0.2s; text-align:center; }
+        .date-label:hover { color:var(--cyan); }
+        .date-label.active { color:var(--cyan); font-weight:700; }
+        .detail-refresh-note { font-size:11px; color:var(--muted); text-align:center; }
+        .detail-refresh-note span { color:var(--cyan); }
+    </style>
+</head>
+
+<body>
+
+    <!-- TICKER -->
+    <div class="ticker">
+        <div class="ticker-track" id="ticker"></div>
+    </div>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="logo">Crypto<span>Track</span></div>
+        <div class="topbar-right">
+            <div style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;">
+                <div class="refresh-dot"></div>Live • <span id="countdown">30s</span>
+            </div>
+            <div class="notif-btn" onclick="location.href='alerts.html'">🔔<div class="notif-badge hidden" id="notif-badge">0</div>
+            </div>
+            <div class="profile-btn" onclick="location.href='profile.html'"><div class="avatar" id="topbar-avatar">??</div><span id="topbar-name" style="font-size:13px">Loading...</span></div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-label">Main Menu</div>
+            <div class="nav-item" onclick="location.href='dashboard.html'"><span class="nav-icon">🏠</span> Dashboard</div>
+            <div class="nav-item" onclick="location.href='portfolio.html'"><span class="nav-icon">📊</span> Portfolio</div>
+            <div class="nav-item" onclick="location.href='market.html'"><span class="nav-icon">🌍</span> Live Market</div>
+            <div class="nav-item active"><span class="nav-icon">⭐</span> Watchlist</div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Tools</div>
+            <div class="nav-item" onclick="location.href='alerts.html'"><span class="nav-icon">🔔</span> Alerts <span class="nav-badge" id="sidebar-alert-badge" style="display:none">0</span></div>
+            <div class="nav-item" onclick="location.href='history.html'"><span class="nav-icon">🧾</span> Transaction History</div>
+            <div class="nav-item" onclick="location.href='news.html'"><span class="nav-icon">📰</span> News</div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Account</div>
+            <div class="nav-item" onclick="location.href='profile.html'"><span class="nav-icon">👤</span> Profile</div>
+        </div>
+        <div class="sidebar-bottom">
+            <div class="logout-btn" onclick="handleLogout()"><span>🚪</span> Logout</div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+        <div class="page-header">
+            <div>
+                <div class="page-title">⭐ My <span>Watchlist</span></div>
+                <div style="font-size:13px;color:var(--muted);margin-top:4px">Tracking <span id="watch-count">0</span> coins</div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-grid">
+            <div class="sum-card blue">
+                <div class="sum-label">Watching</div>
+                <div class="sum-val" id="sum-watching">0</div>
+                <div class="sum-icon">⭐</div>
+            </div>
+            <div class="sum-card green">
+                <div class="sum-label">Gainers Today</div>
+                <div class="sum-val" id="sum-gainers">—</div>
+                <div class="sum-icon">📈</div>
+            </div>
+            <div class="sum-card red">
+                <div class="sum-label">Losers Today</div>
+                <div class="sum-val" id="sum-losers">—</div>
+                <div class="sum-icon">📉</div>
+            </div>
+            <div class="sum-card yellow">
+                <div class="sum-label">Best Performer</div>
+                <div class="sum-val" id="sum-best">—</div>
+                <div class="sum-icon">🏆</div>
+            </div>
+        </div>
+
+        <!-- Search & Sort Row -->
+        <div class="search-row">
+            <div class="search-wrap">
+                <span class="search-icon-pos">🔍</span>
+                <input class="search-input" type="text" placeholder="Search watchlist..." oninput="filterWatchlist(this.value)">
+            </div>
+            <select class="sort-select" onchange="sortWatchlist(this.value)">
+                <option value="">Sort by Default</option>
+                <option value="price-high">Price: High → Low</option>
+                <option value="price-low">Price: Low → High</option>
+                <option value="change-high">Change: Best First</option>
+                <option value="change-low">Change: Worst First</option>
+            </select>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Watchlist cards -->
+            <div class="watchlist-grid" id="watchlistGrid">
+                <div style="padding:48px;color:var(--muted);text-align:center;grid-column:1/-1">⏳ Loading watchlist...</div>
+            </div>
+
+            <!-- Right panel: Add coins -->
+            <div>
+                <div class="add-panel">
+                    <div class="card-title">➕ Add Coins</div>
+                    <input class="coin-search-input" type="text" placeholder="Search coins to add..." oninput="filterAddList(this.value)">
+                    <div id="addCoinList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════ CONFIG ═══════════════════
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-backend-d9v8.onrender.com/api';
+        const _token = localStorage.getItem('token');
+        const _user  = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!_token || !_user) { window.location.href = '../index.html'; }
+
+        function _loadUser() {
+            if (!_user) return;
+            const full     = _user.name || 'User';
+            const initials = full.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+            const av  = document.getElementById('topbar-avatar');
+            const nm  = document.getElementById('topbar-name');
+            if (av)  av.textContent  = initials;
+            if (nm)  nm.textContent  = full;
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../index.html';
+        }
+
+        // ── COIN META (for logos/colors when CoinGecko data arrives) ──
+        const COIN_META = {
+            bitcoin:     { sym:'BTC',  logo:'₿', color:'#f7931a', bg:'rgba(247,147,26,0.15)',  name:'Bitcoin'   },
+            ethereum:    { sym:'ETH',  logo:'Ξ', color:'#627eea', bg:'rgba(98,126,234,0.15)',  name:'Ethereum'  },
+            solana:      { sym:'SOL',  logo:'◎', color:'#9945ff', bg:'rgba(153,69,255,0.15)',  name:'Solana'    },
+            binancecoin: { sym:'BNB',  logo:'B', color:'#f0b90b', bg:'rgba(240,185,11,0.15)',  name:'BNB'       },
+            cardano:     { sym:'ADA',  logo:'A', color:'#0072ff', bg:'rgba(0,114,255,0.15)',   name:'Cardano'   },
+            'avalanche-2':{ sym:'AVAX',logo:'A', color:'#e84142', bg:'rgba(232,65,66,0.15)',   name:'Avalanche' },
+            ripple:      { sym:'XRP',  logo:'X', color:'#00aae4', bg:'rgba(0,170,228,0.15)',   name:'XRP'       },
+            dogecoin:    { sym:'DOGE', logo:'D', color:'#c2a633', bg:'rgba(194,166,51,0.15)',  name:'Dogecoin'  },
+            polkadot:    { sym:'DOT',  logo:'●', color:'#e6007a', bg:'rgba(230,0,122,0.15)',   name:'Polkadot'  },
+            chainlink:   { sym:'LINK', logo:'⬡', color:'#2a5ada', bg:'rgba(42,90,218,0.15)',   name:'Chainlink' },
+            litecoin:    { sym:'LTC',  logo:'Ł', color:'#bfbbbb', bg:'rgba(191,187,187,0.15)', name:'Litecoin'  },
+        };
+
+        // All available coins for the "Add" panel
+        const AVAILABLE_COINS = Object.entries(COIN_META).map(([id, m]) => ({ id, ...m }));
+
+        let watchlist   = [];   // filled from backend
+        let livePrices  = {};   // filled from CoinGecko
+
+        // ── FORMAT ──
+        function fmtP(v) {
+            if (!v) return '$0';
+            if (v >= 1000) return '$' + v.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
+            if (v >= 1)    return '$' + v.toFixed(2);
+            return '$' + v.toFixed(4);
+        }
+        function fmtLarge(v) {
+            if (!v) return '—';
+            if (v >= 1e12) return '$' + (v/1e12).toFixed(2) + 'T';
+            if (v >= 1e9)  return '$' + (v/1e9).toFixed(2)  + 'B';
+            if (v >= 1e6)  return '$' + (v/1e6).toFixed(1)  + 'M';
+            return '$' + v.toLocaleString();
+        }
+
+        // ── LOAD WATCHLIST FROM BACKEND ──
+        async function loadWatchlist() {
+            try {
+                const res  = await fetch(`${API}/watchlist`, {
+                    headers: { 'Authorization': `Bearer ${_token}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+                watchlist = (data.watchlist || []).map(row => ({
+                    id:      row.id,
+                    coinId:  row.coin_id,
+                    sym:     row.symbol?.toUpperCase() || row.coin_id,
+                    name:    row.name || row.coin_id,
+                    ...(COIN_META[row.coin_id] || { logo: row.symbol?.[0] || '?', color: '#00e5ff', bg: 'rgba(0,229,255,0.1)' })
+                }));
+                fetchLivePrices();
+                renderAddList('');
+            } catch (err) {
+                console.error('Watchlist load error:', err);
+                document.getElementById('watchlistGrid').innerHTML =
+                    `<div style="padding:40px;color:var(--muted);text-align:center">⚠️ Could not load watchlist. Is your backend running?</div>`;
+            }
+        }
+
+        // ── FETCH LIVE PRICES ──
+        async function fetchLivePrices() {
+            if (!watchlist.length) { renderWatchlist(); return; }
+            // Fetch prices for watchlist + all available coins so Add panel shows prices too
+            const watchIds = watchlist.map(c => c.coinId);
+            const allIds = [...new Set([...watchIds, ...AVAILABLE_COINS.map(c => c.id)])].join(',');
+            const ids = allIds;
+            try {
+                const res  = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&price_change_percentage=24h,7d`);
+                if (!res.ok) throw new Error('CoinGecko error');
+                const coins = await res.json();
+                coins.forEach(c => { livePrices[c.id] = c; });
+                renderWatchlist();
+                renderAddList('');
+                updateTicker();
+            } catch(e) {
+                console.error('CoinGecko error:', e);
+                renderWatchlist(); // render anyway with no prices
+            }
+        }
+
+        // ── RENDER WATCHLIST ──
+        const sparkCache = {};
+
+        async function fetchSparkline(coinId) {
+            if (sparkCache[coinId]) return sparkCache[coinId];
+            try {
+                const res = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=10&interval=daily`);
+                const data = await res.json();
+                const full = (data.prices || []).map(p => ({ time: p[0], price: p[1] }));
+                sparkCache[coinId] = full;
+                return full;
+            } catch(e) {
+                return Array.from({length: 10}, (_, i) => ({ time: Date.now() - (9-i)*86400000, price: 100 + i }));
+            }
+        }
+
+        function buildSparklineSVG(full, color) {
+            const pts = full.map(p => p.price || p);
+            if (!pts || pts.length < 2) return `<svg viewBox="0 0 200 60"><text x="100" y="35" text-anchor="middle" fill="#4a7090" font-size="10">No data</text></svg>`;
+            const W = 200, H = 60, PAD = 4;
+            const min = Math.min(...pts);
+            const max = Math.max(...pts);
+            const range = max - min || 1;
+            const xs = pts.map((_, i) => PAD + (i / (pts.length - 1)) * (W - PAD * 2));
+            const ys = pts.map(p => PAD + (1 - (p - min) / range) * (H - PAD * 2));
+            const line = xs.map((x, i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
+            const area = line + ` L${xs[xs.length-1].toFixed(1)},${H} L${xs[0].toFixed(1)},${H} Z`;
+            const lastX = xs[xs.length-1].toFixed(1);
+            const lastY = ys[ys.length-1].toFixed(1);
+            const maxIdx = pts.indexOf(Math.max(...pts));
+            const minIdx = pts.indexOf(Math.min(...pts));
+            const gid = 'sg' + Math.random().toString(36).slice(2,6);
+            return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="${color}" stop-opacity="0.35"/>
+                        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <path d="${area}" fill="url(#${gid})" stroke="none"/>
+                <path d="${line}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="${xs[maxIdx].toFixed(1)}" cy="${ys[maxIdx].toFixed(1)}" r="2.5" fill="#00ff9c" opacity="0.9"/>
+                <circle cx="${xs[minIdx].toFixed(1)}" cy="${ys[minIdx].toFixed(1)}" r="2.5" fill="#ff4d6d" opacity="0.9"/>
+                <circle cx="${lastX}" cy="${lastY}" r="3" fill="${color}"/>
+            </svg>`;
+        }
+
+        function renderWatchlist() {
+            const grid = document.getElementById('watchlistGrid');
+            if (!watchlist.length) {
+                grid.innerHTML = `<div style="padding:48px;color:var(--muted);text-align:center;grid-column:1/-1">⭐ Your watchlist is empty. Add coins from the panel on the right!</div>`;
+                document.getElementById('watch-count').textContent = '0';
+                return;
+            }
+            grid.innerHTML = watchlist.map(c => {
+                const lp   = livePrices[c.coinId];
+                const px   = lp?.current_price   || 0;
+                const ch   = lp?.price_change_percentage_24h || 0;
+                const ch7  = lp?.price_change_percentage_7d_in_currency || 0;
+                const cap  = fmtLarge(lp?.market_cap || 0);
+                const vol  = fmtLarge(lp?.total_volume || 0);
+                const high = lp?.high_24h ? fmtP(lp.high_24h) : '—';
+                const low  = lp?.low_24h  ? fmtP(lp.low_24h)  : '—';
+                const up   = ch  >= 0;
+                const up7  = ch7 >= 0;
+                return `<div class="watch-card" style="--coin-color:${c.color}">
+      <div class="watch-card-top">
+        <div class="watch-coin-left">
+          <div class="watch-logo" style="background:${c.bg};color:${c.color}">${c.logo}</div>
+          <div><div class="watch-name">${c.name}</div><div class="watch-sym">${c.sym}</div></div>
+        </div>
+        <button class="remove-btn" onclick="removeCoin('${c.coinId}')" title="Remove">✕</button>
+      </div>
+      <div class="chart-mini-wrap" id="mini-wrap-${c.coinId}"><svg viewBox="0 0 200 60" preserveAspectRatio="none"><text x="100" y="35" text-anchor="middle" fill="#4a7090" font-size="10">Loading chart...</text></svg></div>
+      <div class="watch-price" style="color:${c.color}">${px ? fmtP(px) : '⏳'}</div>
+      <div class="watch-change ${up ? 'up' : 'down'}" id="chg-${c.coinId}">${up ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}% today &nbsp;|&nbsp; <span style="color:var(--muted)" id="chg7-${c.coinId}">loading 7d...</span></div>
+      <div class="watch-stats">
+        <div class="wstat"><div class="wstat-label">Market Cap</div><div class="wstat-val">${cap}</div></div>
+        <div class="wstat"><div class="wstat-label">24h Volume</div><div class="wstat-val">${vol}</div></div>
+        <div class="wstat"><div class="wstat-label">24h High</div><div class="wstat-val" style="color:var(--green)">${high}</div></div>
+        <div class="wstat"><div class="wstat-label">24h Low</div><div class="wstat-val" style="color:var(--red)">${low}</div></div>
+      </div>
+      <div class="watch-actions">
+        <button class="alert-btn" style="width:100%" onclick="location.href='alerts.html'">🔔 Set Alert</button>
+      </div>
+    </div>`;
+            }).join('');
+
+            // Draw SVG sparkline charts + fix 7d gain/loss
+            watchlist.forEach(async c => {
+                const wrap = document.getElementById(`mini-wrap-${c.coinId}`);
+                if (!wrap) return;
+                const lp = livePrices[c.coinId];
+                const up24 = (lp?.price_change_percentage_24h || 0) >= 0;
+                const full = await fetchSparkline(c.coinId);
+                const prices = full.map(p => p.price || p);
+                // Calculate real 10d change from sparkline data
+                const first = prices[0], last = prices[prices.length - 1];
+                const ch10 = first > 0 ? ((last - first) / first) * 100 : 0;
+                const up10 = ch10 >= 0;
+                const color = up24 ? '#00ff9c' : '#ff4d6d';
+                wrap.innerHTML = buildSparklineSVG(full, color);
+                wrap.style.cursor = 'pointer';
+                wrap.onclick = () => openDetailChart(c, full, lp);
+                // Update 7d label with real 10d data
+                const chg7el = document.getElementById(`chg7-${c.coinId}`);
+                if (chg7el) {
+                    chg7el.textContent = `${up10 ? '▲' : '▼'} ${Math.abs(ch10).toFixed(2)}% 10d`;
+                    chg7el.style.color = up10 ? 'var(--green)' : 'var(--red)';
+                }
+            });
+            document.getElementById('watch-count').textContent = watchlist.length;
+        }
+
+        // ── ADD COIN → BACKEND ──
+        async function addCoin(coinId) {
+            const meta = COIN_META[coinId];
+            if (!meta) return;
+            try {
+                const res  = await fetch(`${API}/watchlist`, {
+                    method:  'POST',
+                    headers: { 'Authorization': `Bearer ${_token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ coin_id: coinId, symbol: meta.sym, name: meta.name })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+                await loadWatchlist();
+                showToast(`${meta.name} added to watchlist!`);
+            } catch(err) {
+                showToast('Could not add coin: ' + err.message, true);
+            }
+        }
+
+        // ── REMOVE COIN → BACKEND ──
+        async function removeCoin(coinId) {
+            try {
+                const res = await fetch(`${API}/watchlist/${coinId}`, {
+                    method:  'DELETE',
+                    headers: { 'Authorization': `Bearer ${_token}` }
+                });
+                if (!res.ok) throw new Error('Delete failed');
+                watchlist = watchlist.filter(c => c.coinId !== coinId);
+                renderWatchlist();
+                renderAddList('');
+                showToast('Removed from watchlist');
+            } catch(err) {
+                showToast('Could not remove coin', true);
+            }
+        }
+
+        // ── RENDER ADD PANEL ──
+        function renderAddList(q) {
+            const inWatch = new Set(watchlist.map(c => c.coinId));
+            const filtered = AVAILABLE_COINS.filter(c =>
+                !inWatch.has(c.id) &&
+                (c.name.toLowerCase().includes(q.toLowerCase()) || c.sym.toLowerCase().includes(q.toLowerCase()))
+            );
+            document.getElementById('addCoinList').innerHTML = filtered.map(c => {
+                const lp = livePrices[c.id];
+                const px = lp?.current_price || 0;
+                const ch = lp?.price_change_percentage_24h || 0;
+                const up = ch >= 0;
+                return `<div class="coin-option">
+      <div class="coin-opt-logo" style="background:${c.bg};color:${c.color}">${c.logo}</div>
+      <div class="coin-opt-info"><div class="coin-opt-name">${c.name}</div><div class="coin-opt-price">${px ? fmtP(px) : '—'}</div></div>
+      <div class="coin-opt-change ${up ? 'up' : 'down'}">${up ? '+' : ''}${ch.toFixed(2)}%</div>
+      <button class="add-coin-btn" onclick="addCoin('${c.id}')">+ Add</button>
+    </div>`;
+            }).join('') || `<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">All available coins added! ✅</div>`;
+        }
+
+        function filterWatchlist(q) {
+            const filtered = q ? watchlist.filter(c => c.name.toLowerCase().includes(q.toLowerCase()) || c.sym.toLowerCase().includes(q.toLowerCase())) : watchlist;
+            renderWatchlist(filtered);
+        }
+        function filterAddList(q) { renderAddList(q); }
+        function sortWatchlist(val) { renderWatchlist(); }
+
+        // ── TICKER ──
+        function updateTicker() {
+            const items = Object.values(livePrices).slice(0,8).map(c => {
+                const ch = c.price_change_percentage_24h || 0;
+                const up = ch >= 0;
+                return `<div class="ticker-item"><span class="name">${c.symbol.toUpperCase()}</span><span>${fmtP(c.current_price)}</span><span class="${up?'up':'down'}">${up?'▲':'▼'}${Math.abs(ch).toFixed(2)}%</span></div>`;
+            });
+            const el = document.getElementById('ticker');
+            if (el && items.length) el.innerHTML = [...items,...items].join('');
+        }
+
+        // ── TOAST ──
+        function showToast(msg, isError = false) {
+            let t = document.getElementById('toast-wl');
+            if (!t) { t = document.createElement('div'); t.id='toast-wl'; t.style.cssText='position:fixed;bottom:32px;right:32px;padding:12px 22px;border-radius:10px;font-weight:700;font-size:14px;z-index:999;transition:all 0.3s;transform:translateY(80px);opacity:0;'; document.body.appendChild(t); }
+            t.textContent = (isError ? '❌ ' : '✅ ') + msg;
+            t.style.background = isError ? '#ff4d6d' : '#00ff9c';
+            t.style.color = '#000';
+            t.style.transform = 'translateY(0)';
+            t.style.opacity = '1';
+            setTimeout(() => { t.style.transform = 'translateY(80px)'; t.style.opacity = '0'; }, 3000);
+        }
+
+
+        // ── DETAIL CHART ──
+        let detailChart = null;
+        let detailRefreshTimer = null;
+        let currentDetailCoin = null;
+
+        async function openDetailChart(c, full, lp) {
+            currentDetailCoin = { c, lp };
+            document.getElementById('detail-overlay').classList.add('open');
+            document.getElementById('d-logo').textContent = c.logo;
+            document.getElementById('d-logo').style.background = c.bg;
+            document.getElementById('d-logo').style.color = c.color;
+            document.getElementById('d-name').textContent = c.name;
+            document.getElementById('d-sym').textContent = c.sym;
+            const px = lp?.current_price || 0;
+            document.getElementById('d-price').textContent = fmtP(px);
+            document.getElementById('d-price').style.color = c.color;
+            const ch = lp?.price_change_percentage_24h || 0;
+            const chEl = document.getElementById('d-change');
+            chEl.textContent = (ch >= 0 ? '▲ +' : '▼ ') + ch.toFixed(2) + '% 24h';
+            chEl.style.color = ch >= 0 ? 'var(--green)' : 'var(--red)';
+            document.getElementById('d-cap').textContent = fmtLarge(lp?.market_cap || 0);
+            renderDetailChart(full, c);
+            // Auto-refresh every 30s
+            clearInterval(detailRefreshTimer);
+            detailRefreshTimer = setInterval(async () => {
+                delete sparkCache[c.coinId];
+                const newFull = await fetchSparkline(c.coinId);
+                renderDetailChart(newFull, c);
+            }, 30000);
+        }
+
+        function renderDetailChart(full, c) {
+            const prices = full.map(p => p.price || p);
+            const times = full.map(p => p.time || Date.now());
+            const labels = times.map(t => {
+                const d = new Date(t);
+                return d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+            });
+            const maxPrice = Math.max(...prices);
+            const minPrice = Math.min(...prices);
+            const first = prices[0], last = prices[prices.length - 1];
+            const ch10 = first > 0 ? ((last - first) / first) * 100 : 0;
+            const up = ch10 >= 0;
+            const color = up ? '#00ff9c' : '#ff4d6d';
+
+            // Stats
+            document.getElementById('d-high').textContent = fmtP(maxPrice);
+            document.getElementById('d-low').textContent = fmtP(minPrice);
+            const ch10el = document.getElementById('d-change10');
+            ch10el.textContent = (ch10 >= 0 ? '+' : '') + ch10.toFixed(2) + '%';
+            ch10el.style.color = up ? 'var(--green)' : 'var(--red)';
+
+            // Date labels with click
+            const datesEl = document.getElementById('d-dates');
+            datesEl.innerHTML = labels.map((l, i) =>
+                `<div class="date-label" onclick="highlightPoint(${i})" id="dlabel-${i}">${l}</div>`
+            ).join('');
+
+            // Chart
+            const ctx = document.getElementById('d-chart').getContext('2d');
+            if (detailChart) detailChart.destroy();
+            const grad = ctx.createLinearGradient(0, 0, 0, 200);
+            grad.addColorStop(0, up ? 'rgba(0,255,156,0.3)' : 'rgba(255,77,109,0.3)');
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+            // Peak and low point colors
+            const pointColors = prices.map(p => {
+                if (p === maxPrice) return '#00ff9c';
+                if (p === minPrice) return '#ff4d6d';
+                return 'transparent';
+            });
+            const pointRadii = prices.map(p => (p === maxPrice || p === minPrice) ? 5 : 3);
+
+            detailChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        data: prices,
+                        borderColor: color,
+                        backgroundColor: grad,
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: pointRadii,
+                        pointBackgroundColor: pointColors,
+                        pointBorderColor: pointColors,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: color
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: false,
+                            external: ({ tooltip }) => {
+                                const el = document.getElementById('d-tooltip');
+                                if (tooltip.opacity === 0) { el.classList.remove('show'); return; }
+                                const dp = tooltip.dataPoints?.[0];
+                                if (!dp) return;
+                                const px = dp.parsed.y;
+                                const lbl = dp.label;
+                                const isHigh = px === maxPrice;
+                                const isLow  = px === minPrice;
+                                const tag = isHigh ? ' 🔝 Peak' : isLow ? ' 🔻 Low' : '';
+                                el.innerHTML = `<strong>${lbl}</strong>: ${fmtP(px)}${tag}`;
+                                el.classList.add('show');
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#4a7090', font: { size: 10 }, maxTicksLimit: 10 },
+                            grid: { color: 'rgba(0,200,255,0.04)' }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#4a7090',
+                                font: { size: 10 },
+                                callback: v => '$' + v.toLocaleString(undefined, { maximumFractionDigits: 4 })
+                            },
+                            grid: { color: 'rgba(0,200,255,0.06)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function highlightPoint(idx) {
+            if (!detailChart) return;
+            // Highlight date label
+            document.querySelectorAll('.date-label').forEach(el => el.classList.remove('active'));
+            const lbl = document.getElementById(`dlabel-${idx}`);
+            if (lbl) lbl.classList.add('active');
+            // Show tooltip for that point
+            const meta = detailChart.getDatasetMeta(0);
+            const pt = meta.data[idx];
+            if (pt) {
+                detailChart.tooltip.setActiveElements([{ datasetIndex: 0, index: idx }], { x: pt.x, y: pt.y });
+                detailChart.update();
+            }
+        }
+
+        function closeDetailChart() {
+            document.getElementById('detail-overlay').classList.remove('open');
+            clearInterval(detailRefreshTimer);
+            if (detailChart) { detailChart.destroy(); detailChart = null; }
+        }
+
+        // ── AUTO REFRESH ──
+        let cd = 30;
+        setInterval(() => {
+            cd--;
+            if (cd <= 0) { cd = 30; fetchLivePrices(); }
+            const el = document.getElementById('countdown');
+            if (el) el.textContent = cd + 's';
+        }, 1000);
+
+        // ── LOAD ALERT COUNT ──
+        async function loadAlertCount() {
+            try {
+                const res = await fetch(`${API}/alerts`, {
+                    headers: { 'Authorization': `Bearer ${_token}` }
+                });
+                const data = await res.json();
+                if (data.success && data.alerts) {
+                    const active = data.alerts.filter(a => a.is_active !== false).length;
+                    const badge = document.getElementById('notif-badge');
+                    const sidebar = document.getElementById('sidebar-alert-badge');
+                    if (active > 0) {
+                        if (badge) { badge.textContent = active; badge.classList.remove('hidden'); }
+                        if (sidebar) { sidebar.textContent = active; sidebar.style.display = 'flex'; }
+                    }
+                }
+            } catch(e) {}
+        }
+
+        // ── INIT ──
+        document.addEventListener('DOMContentLoaded', () => {
+            _loadUser();
+            loadWatchlist();
+            loadAlertCount();
+        });
+
+    </script>
+
+    <!-- DETAIL CHART MODAL -->
+    <div class="detail-overlay" id="detail-overlay" onclick="if(event.target===this)closeDetailChart()">
+        <div class="detail-modal">
+            <div class="detail-header">
+                <div class="detail-coin-info">
+                    <div class="detail-logo" id="d-logo"></div>
+                    <div>
+                        <div class="detail-name" id="d-name">Bitcoin</div>
+                        <div class="detail-sym" id="d-sym">BTC</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:16px">
+                    <div class="detail-price-box">
+                        <div class="detail-price" id="d-price">—</div>
+                        <div id="d-change" style="font-size:13px;margin-top:2px">—</div>
+                    </div>
+                    <button class="detail-close" onclick="closeDetailChart()">✕</button>
+                </div>
+            </div>
+            <div class="detail-stats-row">
+                <div class="dstat"><div class="dstat-label">10D High</div><div class="dstat-val" id="d-high" style="color:var(--green)">—</div></div>
+                <div class="dstat"><div class="dstat-label">10D Low</div><div class="dstat-val" id="d-low" style="color:var(--red)">—</div></div>
+                <div class="dstat"><div class="dstat-label">10D Change</div><div class="dstat-val" id="d-change10">—</div></div>
+                <div class="dstat"><div class="dstat-label">Market Cap</div><div class="dstat-val" id="d-cap">—</div></div>
+            </div>
+            <div class="detail-chart-wrap">
+                <div class="detail-tooltip" id="d-tooltip">—</div>
+                <canvas id="d-chart" height="200"></canvas>
+            </div>
+            <div class="date-labels" id="d-dates"></div>
+            <div class="detail-refresh-note">Auto-refreshes every <span>30s</span> · Click any date to highlight · Green dot = peak · Red dot = low</div>
+        </div>
+    </div>
+<script src="../crypto-api.js"></script>
+    <script src="firewall.client.js"></script>
+</body>
+</html>
