@@ -405,6 +405,62 @@
         const user  = JSON.parse(localStorage.getItem('user') || 'null');
         if (!token || !user) window.location.href = '../index.html';
 
+        function getStoredExchanges() {
+            try { return JSON.parse(localStorage.getItem('exchanges') || '{}'); } catch (e) { return {}; }
+        }
+
+        function getSelectedExchange() {
+            const exchanges = getStoredExchanges();
+            const selected = localStorage.getItem('selectedExchange');
+            if (selected && exchanges[selected]?.connected) return selected;
+            const fallback = Object.keys(exchanges).find((key) => exchanges[key]?.connected);
+            if (fallback) {
+                localStorage.setItem('selectedExchange', fallback);
+                return fallback;
+            }
+            localStorage.removeItem('selectedExchange');
+            return null;
+        }
+
+        function buildAverageBuyPriceMap(transactions) {
+            const positions = {};
+            [...(transactions || [])]
+                .filter((t) => t.symbol && (t.type === 'buy' || t.type === 'sell'))
+                .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+                .forEach((trade) => {
+                    const symbol = String(trade.symbol).toUpperCase();
+                    const qty = parseFloat(trade.amount || trade.quantity || 0);
+                    const price = parseFloat(trade.price || trade.price_per_coin || 0);
+                    if (!qty || !price) return;
+
+                    if (!positions[symbol]) positions[symbol] = { qty: 0, cost: 0 };
+                    const position = positions[symbol];
+
+                    if (trade.type === 'buy') {
+                        position.qty += qty;
+                        position.cost += qty * price;
+                        return;
+                    }
+
+                    if (position.qty <= 0) return;
+                    const avg = position.cost / position.qty;
+                    const reducedQty = Math.min(qty, position.qty);
+                    position.qty -= reducedQty;
+                    position.cost -= reducedQty * avg;
+                    if (position.qty <= 0) {
+                        position.qty = 0;
+                        position.cost = 0;
+                    }
+                });
+
+            return Object.fromEntries(
+                Object.entries(positions).map(([symbol, position]) => [
+                    symbol,
+                    position.qty > 0 ? position.cost / position.qty : 0
+                ])
+            );
+        }
+
         const CG  = 'https://api.coingecko.com/api/v3';
         const SYM = { usd:'$', eur:'€', inr:'₹' };
         const MARKET_IDS = 'bitcoin,ethereum,tether,binancecoin,solana,ripple,usd-coin,cardano,avalanche-2,dogecoin';
@@ -466,36 +522,38 @@
 
         // ── BACKEND FETCHES ──
         async function loadPortfolio() {
-            // Try manual holdings first
+            const cons = getStoredExchanges();
+            const selectedExchange = getSelectedExchange();
+            window._exchangeConnected = Object.values(cons).some(v => v.connected);
+
+            if (selectedExchange) {
+                try {
+                    const qs = `?exchange=${encodeURIComponent(selectedExchange)}`;
+                    const res = await fetch(`${API}/exchange/portfolio${qs}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.success && Array.isArray(data.holdings)) return data.holdings;
+                    }
+                } catch (e) {}
+                return [];
+            }
+
             try {
                 const res = await fetch(`${API}/holdings`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.ok) {
                     const data = await res.json();
                     if (data.success && data.holdings?.length > 0) return data.holdings;
                 }
-            } catch(e) {}
-
-            // Always try exchange portfolio (Binance, KuCoin, CoinDCX etc.)
-            try {
-                const res2 = await fetch(`${API}/exchange/portfolio`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (res2.ok) {
-                    const data2 = await res2.json();
-                    if (data2.success && data2.holdings?.length > 0) return data2.holdings;
-                }
-            } catch(e) {}
-
-            // Check localStorage to know if user has connected an exchange
-            try {
-                const cons = JSON.parse(localStorage.getItem('exchanges') || '{}');
-                window._exchangeConnected = Object.values(cons).some(v => v.connected);
-            } catch(e) {}
+            } catch (e) {}
 
             return [];
         }
 
         async function loadTransactions() {
             try {
-                const res  = await fetch(`${API}/transactions?limit=5`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const selectedExchange = getSelectedExchange();
+                const qs = selectedExchange ? `?limit=5&exchange=${encodeURIComponent(selectedExchange)}` : '?limit=5';
+                const res  = await fetch(`${API}/transactions${qs}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 return data.transactions || [];
             } catch(e) { return []; }
@@ -529,16 +587,21 @@
         function updHoldings(holdings, prices) {
             let totalVal = 0, totalInvested = 0, bestSym = '—', bestPct = -Infinity;
             const cgPrices = prices.cgPrices || {};
+            const averageBuyPrices = buildAverageBuyPriceMap(window._lastTransactions || []);
+            const selectedExchange = getSelectedExchange();
+            const selectedExchangeName = selectedExchange
+                ? (getStoredExchanges()[selectedExchange]?.name || selectedExchange)
+                : null;
 
             if (!holdings.length) {
                 // Check if exchange is connected but backend returned no data
-                const cons = (() => { try { return JSON.parse(localStorage.getItem('exchanges')||'{}'); } catch(e) { return {}; } })();
+                const cons = getStoredExchanges();
                 const isConnected = Object.values(cons).some(v => v.connected) || window._exchangeConnected;
 
                 const emptyMsg = isConnected
                     ? `<tr><td colspan="6" style="text-align:center;padding:36px">
                             <div style="font-size:40px;margin-bottom:12px">⏳</div>
-                            <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px">Exchange connected — fetching balances...</div>
+                            <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px">${selectedExchangeName || 'Exchange'} connected — fetching balances...</div>
                             <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Your holdings may take a moment to load. Make sure your exchange API key has <strong style="color:var(--cyan)">Read permissions</strong> enabled.</div>
                             <button onclick="loadPortfolioOnly()" style="background:var(--card);border:1px solid var(--cyan);border-radius:10px;padding:10px 22px;color:var(--cyan);font-weight:700;font-size:13px;cursor:pointer;margin-right:8px">🔄 Retry Now</button>
                             <button onclick="location.href='portfolio.html'" style="background:linear-gradient(90deg,var(--cyan),var(--green));border:none;border-radius:10px;padding:10px 22px;color:#000;font-weight:700;font-size:13px;cursor:pointer;">⚙️ Manage Exchange</button>
@@ -570,7 +633,8 @@
                 const meta   = getMeta(h.symbol);
                 const cgData = cgPrices[meta.cgId] || {};
                 const px     = cgData[cur] || cgData.usd || 0;
-                const buyPx  = parseFloat(h.buy_price || h.average_buy_price || 0);
+                const avgFromTrades = averageBuyPrices[String(h.symbol || '').toUpperCase()] || 0;
+                const buyPx  = parseFloat(h.buy_price || h.average_buy_price || avgFromTrades || 0);
                 const amt    = parseFloat(h.balance || h.amount || 0);
                 const val    = amt * px;
                 const inv    = amt * buyPx;
@@ -823,6 +887,7 @@
                 // Store for chart re-use on filter change
                 window._lastHoldings = holdings;
                 window._lastCgPrices = cgPrices;
+                window._lastTransactions = transactions;
 
                 updHoldings(holdings, { cgPrices });
                 updAlerts(alerts);
@@ -1021,11 +1086,12 @@
         async function loadPortfolioOnly() {
             document.getElementById('holdings-body').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">⏳ Fetching holdings from exchange...</td></tr>';
             try {
-                const holdings = await loadPortfolio();
+                const [holdings, transactions] = await Promise.all([loadPortfolio(), loadTransactions()]);
                 const coinIds = 'bitcoin,ethereum,solana,binancecoin,cardano,avalanche-2,ripple,dogecoin';
                 const cgPrices = await cgFetch(`/simple/price?ids=${coinIds}&vs_currencies=${cur},usd&include_24hr_change=true`);
                 window._lastHoldings = holdings;
                 window._lastCgPrices = cgPrices;
+                window._lastTransactions = transactions;
                 updHoldings(holdings, { cgPrices });
                 updatePortfolioChart(holdings, cgPrices);
             } catch(e) {

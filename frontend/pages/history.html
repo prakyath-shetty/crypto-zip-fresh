@@ -934,6 +934,23 @@
         const user   = JSON.parse(localStorage.getItem('user') || 'null');
         if (!token || !user) { window.location.href = '../index.html'; }
 
+        function getStoredExchanges() {
+            try { return JSON.parse(localStorage.getItem('exchanges') || '{}'); } catch (e) { return {}; }
+        }
+
+        function getSelectedExchange() {
+            const exchanges = getStoredExchanges();
+            const selected = localStorage.getItem('selectedExchange');
+            if (selected && exchanges[selected]?.connected) return selected;
+            const fallback = Object.keys(exchanges).find((key) => exchanges[key]?.connected);
+            if (fallback) {
+                localStorage.setItem('selectedExchange', fallback);
+                return fallback;
+            }
+            localStorage.removeItem('selectedExchange');
+            return null;
+        }
+
         // ── topbar user ──
         function loadUser() {
             if (!user) return;
@@ -991,17 +1008,18 @@
             const status = document.getElementById('sync-status');
 
             // Read which exchange is connected — same as Portfolio page
-            const exchanges = JSON.parse(localStorage.getItem('exchanges') || '{}');
-            const connected = Object.entries(exchanges).find(([, v]) => v.connected);
+            const exchanges = getStoredExchanges();
+            const selectedKey = getSelectedExchange();
 
-            if (!connected) {
+            if (!selectedKey || !exchanges[selectedKey]?.connected) {
                 status.textContent = '❌ No exchange connected. Go to Portfolio first.';
                 status.style.color = 'var(--red)';
                 setTimeout(() => { status.textContent = ''; }, 5000);
                 return;
             }
 
-            const [exchangeKey, exchangeVal] = connected;
+            const exchangeKey = selectedKey;
+            const exchangeVal = exchanges[selectedKey];
             const exchangeLogos = { binance:'🔶', kucoin:'🟢', coindcx:'🔵', coinbase:'🔷' };
             const logo = exchangeLogos[exchangeKey] || '🔗';
 
@@ -1044,7 +1062,9 @@
             tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted)">⏳ Loading transactions...</td></tr>`;
 
             try {
-                const res  = await fetch(`${API}/transactions`, {
+                const selectedExchange = getSelectedExchange();
+                const query = selectedExchange ? `?exchange=${encodeURIComponent(selectedExchange)}` : '';
+                const res  = await fetch(`${API}/transactions${query}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
@@ -1098,11 +1118,15 @@
             tbody.innerHTML = '';
 
             if (data.length === 0) {
-                const exchanges = JSON.parse(localStorage.getItem('exchanges') || '{}');
+                const exchanges = getStoredExchanges();
                 const isConnected = Object.values(exchanges).some(v => v.connected);
+                const selectedExchange = getSelectedExchange();
+                const selectedLabel = selectedExchange && exchanges[selectedExchange]?.name
+                    ? exchanges[selectedExchange].name
+                    : 'your connected exchange';
                 const msg = allTxns.length === 0
                     ? isConnected
-                        ? '🔄 Exchanges connected! Click <strong style="color:var(--cyan)">Sync From Exchanges</strong> to load your trade history.'
+                        ? `🔄 ${selectedLabel} connected! Click <strong style="color:var(--cyan)">Sync From Exchanges</strong> to load your trade history.`
                         : '📭 No transactions yet. Go to <a onclick="location.href=\'portfolio.html\'" style="color:var(--cyan);cursor:pointer">Portfolio</a> to connect your exchange first.'
                     : '🔍 No transactions match your filters.';
                 tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:48px;color:var(--muted)">${msg}</td></tr>`;
@@ -1221,10 +1245,11 @@
             loadTicker();
 
             // Set sync button label to match connected exchange
-            const exchanges = JSON.parse(localStorage.getItem('exchanges') || '{}');
-            const connected = Object.entries(exchanges).find(([, v]) => v.connected);
-            if (connected) {
-                const [key, val] = connected;
+            const exchanges = getStoredExchanges();
+            const selectedExchange = getSelectedExchange();
+            if (selectedExchange && exchanges[selectedExchange]) {
+                const key = selectedExchange;
+                const val = exchanges[selectedExchange];
                 const logos = { binance:'🔶', kucoin:'🟢', coindcx:'🔵', coinbase:'🔷' };
                 document.getElementById('syncBtn').textContent = `${logos[key] || '🔗'} Sync from ${val.name}`;
             }

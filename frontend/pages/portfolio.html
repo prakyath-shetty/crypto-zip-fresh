@@ -407,6 +407,23 @@
         const user = JSON.parse(localStorage.getItem('user') || 'null');
         if (!token || !user) window.location.href = '../index.html';
 
+        function getStoredExchanges() {
+            try { return JSON.parse(localStorage.getItem('exchanges') || '{}'); } catch (e) { return {}; }
+        }
+
+        function getSelectedExchange() {
+            const exchanges = getStoredExchanges();
+            const selected = localStorage.getItem('selectedExchange');
+            if (selected && exchanges[selected]?.connected) return selected;
+            const fallback = Object.keys(exchanges).find((key) => exchanges[key]?.connected);
+            if (fallback) {
+                localStorage.setItem('selectedExchange', fallback);
+                return fallback;
+            }
+            localStorage.removeItem('selectedExchange');
+            return null;
+        }
+
         // ── USER INFO ──
         const fullName = user?.name || 'User';
         const initials = fullName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
@@ -502,9 +519,10 @@
                     msg.className = 'msg success';
                     msg.textContent = '✅ ' + ex.name + ' connected successfully!';
                     // Save locally
-                    const cons = JSON.parse(localStorage.getItem('exchanges')||'{}');
+                    const cons = getStoredExchanges();
                     cons[currentExchange] = { connected:true, name:ex.name, logo:ex.logo };
                     localStorage.setItem('exchanges', JSON.stringify(cons));
+                    localStorage.setItem('selectedExchange', currentExchange);
                     setTimeout(() => { closeModal(); updateConnectedUI(); loadPortfolio(); }, 1000);
                 } else {
                     msg.className = 'msg error';
@@ -520,9 +538,11 @@
 
         // ── UPDATE CONNECTED UI ──
         function updateConnectedUI() {
-            const cons = JSON.parse(localStorage.getItem('exchanges')||'{}');
+            const cons = getStoredExchanges();
+            const selectedExchange = getSelectedExchange();
             const pills = document.getElementById('connected-pills');
             pills.innerHTML = '';
+            document.querySelectorAll('.exchange-card').forEach(card => card.classList.remove('active-selected'));
 
             Object.entries(cons).forEach(([key, val]) => {
                 if (!val.connected) return;
@@ -536,6 +556,7 @@
                         badge.textContent = 'Connected';
                         card.appendChild(badge);
                     }
+                    if (key === selectedExchange) card.classList.add('active-selected');
                 }
                 const pill = document.createElement('div');
                 pill.className = 'exchange-pill';
@@ -556,9 +577,14 @@
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
             } catch(e) {}
-            const cons = JSON.parse(localStorage.getItem('exchanges')||'{}');
+            const cons = getStoredExchanges();
             delete cons[key];
             localStorage.setItem('exchanges', JSON.stringify(cons));
+            if (localStorage.getItem('selectedExchange') === key) {
+                const nextExchange = Object.keys(cons).find((exchange) => cons[exchange]?.connected);
+                if (nextExchange) localStorage.setItem('selectedExchange', nextExchange);
+                else localStorage.removeItem('selectedExchange');
+            }
             const card = document.getElementById('card-'+key);
             if (card) {
                 card.classList.remove('connected');
@@ -569,7 +595,7 @@
             updateConnectedUI();
         }
         function selectExchange(exchange) {
-            const cons = JSON.parse(localStorage.getItem('exchanges') || '{}');
+            const cons = getStoredExchanges();
             const isConnected = cons[exchange]?.connected;
 
             if (!isConnected) {
@@ -590,7 +616,7 @@
         async function loadPortfolio() {
             document.getElementById('holdings-wrap').innerHTML = '<div class="loading-state">⏳ Fetching your holdings from exchange...</div>';
 
-            const selected = localStorage.getItem("selectedExchange");
+            const selected = getSelectedExchange();
 
             // Show/clear filter badge
             const filterLabel = document.getElementById('exchange-filter-label');
@@ -948,17 +974,19 @@ const res = await fetch(
         updateConnectedUI();
 
         // Auto-highlight saved exchange card on load
-        const savedEx = localStorage.getItem("selectedExchange");
+        const savedEx = getSelectedExchange();
         if (savedEx) {
             document.getElementById('card-' + savedEx)?.classList.add('active-selected');
         }
 
         function clearExchangeFilter() {
-            localStorage.removeItem("selectedExchange");
-            document.querySelectorAll('.exchange-card').forEach(c => c.classList.remove('active-selected'));
+            const fallback = Object.keys(getStoredExchanges()).find((exchange) => getStoredExchanges()[exchange]?.connected);
+            if (fallback) localStorage.setItem("selectedExchange", fallback);
+            else localStorage.removeItem("selectedExchange");
+            updateConnectedUI();
             loadPortfolio();
         }
-        const cons = JSON.parse(localStorage.getItem('exchanges')||'{}');
+        const cons = getStoredExchanges();
         if (Object.values(cons).some(v => v.connected)) loadPortfolio();
 
         // Sync localStorage with DB on every page load — removes stale entries too
@@ -977,6 +1005,12 @@ const res = await fetch(
                         }
                     });
                     localStorage.setItem('exchanges', JSON.stringify(freshCons));
+                    const selectedExchange = localStorage.getItem('selectedExchange');
+                    if (!selectedExchange || !freshCons[selectedExchange]) {
+                        const firstConnected = Object.keys(freshCons)[0];
+                        if (firstConnected) localStorage.setItem('selectedExchange', firstConnected);
+                        else localStorage.removeItem('selectedExchange');
+                    }
                     updateConnectedUI();
                     if (data.exchanges.length > 0) loadPortfolio();
                 }
