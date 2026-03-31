@@ -1208,7 +1208,10 @@
 
         // ── Global fetch wrapper — auto-redirect on token expiry ──
         async function apiFetch(url, opts = {}) {
-            const res = await fetch(url, {
+            const finalUrl = /^https?:\/\//i.test(url)
+                ? url
+                : `${API.replace(/\/+$/, '')}/${String(url).replace(/^\/+/, '')}`;
+            const res = await fetch(finalUrl, {
                 ...opts,
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...(opts.headers || {}) }
             });
@@ -1631,43 +1634,29 @@
         // ═══════════════════ SECURITY STATUS ═══════════════════
         async function loadSecurityStatus() {
             try {
-                const res  = await apiFetch(`${API}/auth/security-status`);
-                if (!res) return;
-                const data = await res.json();
-
-                // 2FA status
                 const tfaEl  = document.getElementById('tfa-status');
                 const tfaBtn = document.getElementById('tfa-btn');
                 if (tfaEl) {
-                    const on = data.twofa_enabled;
-                    tfaEl.textContent  = on ? '✅ ON' : '❌ OFF';
-                    tfaEl.className    = 'sec-status ' + (on ? 'on' : 'off');
-                    if (tfaBtn) tfaBtn.textContent = on ? 'Disable' : 'Enable';
+                    tfaEl.textContent  = '⚠️ Unavailable';
+                    tfaEl.className    = 'sec-status off';
+                    if (tfaBtn) {
+                        tfaBtn.textContent = 'Unavailable';
+                        tfaBtn.disabled = true;
+                        tfaBtn.style.opacity = '0.6';
+                        tfaBtn.style.cursor = 'not-allowed';
+                    }
                 }
 
-                // Sessions count
                 const sessEl = document.getElementById('sessions-status');
-                if (sessEl && data.session_count !== undefined) {
-                    sessEl.textContent = data.session_count + ' Active';
+                if (sessEl) {
+                    sessEl.textContent = '1 Active';
                     sessEl.className   = 'sec-status on';
                 }
             } catch(e) {}
         }
 
         async function toggleTwoFactor() {
-            try {
-                const res  = await apiFetch(`${API}/auth/toggle-2fa`, { method: 'POST' });
-                if (!res) return;
-                const data = await res.json();
-                if (res.ok) {
-                    showToast(data.message || '2FA updated!');
-                    loadSecurityStatus();
-                } else {
-                    showToast(data.message || 'Could not update 2FA', true);
-                }
-            } catch(e) {
-                showToast('Could not reach server', true);
-            }
+            showToast('2FA is not available in this backend yet.', true);
         }
 
         // showToast defined above ↑

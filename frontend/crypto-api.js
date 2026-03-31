@@ -6,6 +6,13 @@
 
 const API_BASE = 'https://crypto-backend-d9v8.onrender.com';
 
+function resolveApiUrl(path) {
+    if (/^https?:\/\//i.test(path)) return path;
+    const normalizedBase = API_BASE.replace(/\/+$/, '');
+    const normalizedPath = String(path || '').startsWith('/') ? path : `/${path}`;
+    return `${normalizedBase}${normalizedPath}`;
+}
+
 // ── TOKEN / SESSION HELPERS ───────────────────────────────────
 const Auth = {
     getToken:    ()     => localStorage.getItem('token'),
@@ -36,7 +43,7 @@ async function apiFetch(path, options = {}) {
         ...(options.headers || {})
     };
     try {
-        const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+        const res = await fetch(resolveApiUrl(path), { ...options, headers });
         const data = await res.json();
         if (res.status === 401) {
             Auth.logout();
@@ -85,7 +92,7 @@ const AuthAPI = {
             method: 'POST',
             body: JSON.stringify({
                 email,
-                frontendUrl: 'https://crypto-frontend-app-six.vercel.app'
+                frontendUrl: window.location.origin
             })
         }),
 
