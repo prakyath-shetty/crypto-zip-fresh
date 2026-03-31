@@ -1248,7 +1248,11 @@
         async function loadProfile() {
             try {
                 const res = await apiFetch(`${API}/auth/me`);
-                if (!res.ok) throw new Error('Unauthorized');
+                if (!res) return;
+                if (!res.ok) {
+                    if (res.status === 401) return;
+                    throw new Error('Unauthorized');
+                }
                 const data = await res.json();
                 const user = data.user || data;
 

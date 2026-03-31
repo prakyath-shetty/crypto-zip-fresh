@@ -3,6 +3,48 @@ const router = express.Router();
 const db = require('../db');
 const { protect } = require('../middleware/auth');
 const { sendAlertEmail } = require('../utils/sendEmail');
+const ALERT_PRICE_CACHE = new Map();
+
+function getAlertPriceCache(key) {
+    const hit = ALERT_PRICE_CACHE.get(key);
+    if (!hit) return null;
+    if (hit.expiresAt <= Date.now()) return hit.data;
+    return hit.data;
+}
+
+function setAlertPriceCache(key, data, ttlMs) {
+    ALERT_PRICE_CACHE.set(key, {
+        data,
+        expiresAt: Date.now() + ttlMs
+    });
+}
+
+function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchAlertPrices(ids) {
+    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`;
+    const cached = getAlertPriceCache(url);
+    if (cached && ALERT_PRICE_CACHE.get(url)?.expiresAt > Date.now()) return cached;
+
+    let lastError = null;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+            const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+            if (!response.ok) throw new Error(`CoinGecko error: ${response.status}`);
+            const prices = await response.json();
+            setAlertPriceCache(url, prices, 45 * 1000);
+            return prices;
+        } catch (error) {
+            lastError = error;
+            await delay((attempt + 1) * 900);
+        }
+    }
+
+    if (cached) return cached;
+    throw lastError || new Error('Price fetch failed');
+}
 
 // GET /api/alerts
 router.get('/', protect, async (req, res) => {
@@ -43,12 +85,7 @@ router.get('/prices', protect, async (req, res) => {
     const { ids } = req.query;
     if (!ids) return res.status(400).json({ success: false, message: 'ids query param required.' });
     try {
-        const cgRes = await fetch(
-            `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,
-            { signal: AbortSignal.timeout(8000) }
-        );
-        if (!cgRes.ok) throw new Error(`CoinGecko error: ${cgRes.status}`);
-        const prices = await cgRes.json();
+        const prices = await fetchAlertPrices(ids);
 
         // Run alert check inline — same logic as /check
         const alertsRes = await db.query(
@@ -88,7 +125,7 @@ router.get('/prices', protect, async (req, res) => {
         }
         res.json({ success: true, prices, triggered });
     } catch (e) {
-        res.status(500).json({ success: false, message: e.message });
+        res.json({ success: true, prices: {}, triggered: [] });
     }
 });
 

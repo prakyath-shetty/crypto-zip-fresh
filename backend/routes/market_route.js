@@ -88,7 +88,7 @@ router.get('/simple/price', async (req, res) => {
         const data = await fetchCoinGeckoJson(`${BASE_URL}/simple/price?${qs}`, 45 * 1000);
         res.json(data);
     } catch (error) {
-        res.status(502).json({ success: false, message: error.message });
+        res.json({});
     }
 });
 
@@ -97,7 +97,7 @@ router.get('/global', async (req, res) => {
         const data = await fetchCoinGeckoJson(`${BASE_URL}/global`, 5 * 60 * 1000);
         res.json(data);
     } catch (error) {
-        res.status(502).json({ success: false, message: error.message });
+        res.json({ data: {} });
     }
 });
 
@@ -118,7 +118,7 @@ router.get('/coins/markets', async (req, res) => {
         const data = await fetchCoinGeckoJson(`${BASE_URL}/coins/markets?${qs}`, 2 * 60 * 1000);
         res.json(data);
     } catch (error) {
-        res.status(502).json({ success: false, message: error.message });
+        res.json([]);
     }
 });
 
@@ -140,7 +140,7 @@ router.get('/coins/:coinId/market_chart', async (req, res) => {
         const data = await fetchCoinGeckoJson(`${BASE_URL}/coins/${coinId}/market_chart?${qs}`, 5 * 60 * 1000);
         res.json(data);
     } catch (error) {
-        res.status(502).json({ success: false, message: error.message });
+        res.json({ prices: [], total_volumes: [] });
     }
 });
 
@@ -163,7 +163,7 @@ router.get('/coins/:coinId', async (req, res) => {
         const data = await fetchCoinGeckoJson(`${BASE_URL}/coins/${coinId}?${qs}`, 10 * 60 * 1000);
         res.json(data);
     } catch (error) {
-        res.status(502).json({ success: false, message: error.message });
+        res.json({});
     }
 });
 
