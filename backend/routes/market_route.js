@@ -4,13 +4,14 @@ const router = express.Router();
 const CACHE = new Map();
 const BASE_URL = 'https://api.coingecko.com/api/v3';
 
+function getCachedEntry(key) {
+    return CACHE.get(key) || null;
+}
+
 function getCached(key) {
     const hit = CACHE.get(key);
     if (!hit) return null;
-    if (hit.expiresAt <= Date.now()) {
-        CACHE.delete(key);
-        return null;
-    }
+    if (hit.expiresAt <= Date.now()) return null;
     return hit.data;
 }
 
@@ -21,18 +22,45 @@ function setCached(key, data, ttlMs) {
     });
 }
 
+function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function fetchCoinGeckoJson(url, ttlMs) {
     const cached = getCached(url);
     if (cached) return cached;
 
-    const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
-    if (!response.ok) {
-        throw new Error(`CoinGecko error ${response.status}`);
+    const staleEntry = getCachedEntry(url);
+    let lastError = null;
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+            const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+            if (!response.ok) {
+                const error = new Error(`CoinGecko error ${response.status}`);
+                error.status = response.status;
+                throw error;
+            }
+
+            const json = await response.json();
+            setCached(url, json, ttlMs);
+            return json;
+        } catch (error) {
+            lastError = error;
+            const retryable = !error.status || error.status === 429 || error.status >= 500;
+            if (attempt < 2 && retryable) {
+                await delay((attempt + 1) * 1200);
+                continue;
+            }
+            break;
+        }
     }
 
-    const json = await response.json();
-    setCached(url, json, ttlMs);
-    return json;
+    if (staleEntry?.data) {
+        return staleEntry.data;
+    }
+
+    throw lastError || new Error('CoinGecko request failed');
 }
 
 function queryString(params, keys) {
