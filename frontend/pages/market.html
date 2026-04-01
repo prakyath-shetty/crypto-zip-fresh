@@ -227,7 +227,7 @@ body{overflow-x:hidden;}
 // ── COIN LIST (top 20) ──
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:5000/api'
-  : 'https://crypto-backend-d9v8.onrender.com/api';
+  : 'https://crypto-zip-fresh.onrender.com/api';
 const COIN_IDS = 'bitcoin,ethereum,tether,binancecoin,solana,ripple,usd-coin,cardano,avalanche-2,dogecoin,polkadot,chainlink,uniswap,litecoin,bitcoin-cash,stellar,vechain,filecoin,aave,algorand';
 // ── CORS-SAFE FETCH with retry on 429 ──
 async function cgFetch(path, retries = 3) {
