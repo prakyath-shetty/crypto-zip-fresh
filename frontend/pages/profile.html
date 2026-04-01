@@ -1296,8 +1296,7 @@
                 const res = await apiFetch(`${API}/auth/me`);
                 if (!res) return;
                 if (!res.ok) {
-                    if (res.status === 401) return;
-                    throw new Error('Unauthorized');
+                    return;
                 }
                 const data = await res.json();
                 const user = data.user || data;
@@ -1350,7 +1349,6 @@
                 if (ve) ve.textContent = user.email || '—';
 
             } catch (err) {
-                console.error('Profile load error:', err);
                 if (userCache) {
                     const full = userCache.name || 'User';
                     const ini = initials(full);
