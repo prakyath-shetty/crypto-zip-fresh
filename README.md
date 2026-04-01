@@ -8,11 +8,11 @@
 
 [Live Frontend](https://crypto-zip-fresh-chi.vercel.app) · [Backend API](https://crypto-zip-fresh.onrender.com) · [Report Bug](https://github.com/prakyath-shetty/crypto-zip-fresh/issues) · [Request Feature](https://github.com/prakyath-shetty/crypto-zip-fresh/issues)
 
-![License](https://img.shields.io/badge/License-MIT-9acd32?style=for-the-badge)
-![Frontend](https://img.shields.io/badge/Frontend-Vercel-111111?style=for-the-badge&logo=vercel)
-![Backend](https://img.shields.io/badge/Backend-Render-46e3b7?style=for-the-badge&logo=render&logoColor=111111)
-![Database](https://img.shields.io/badge/Database-PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
-![Auth](https://img.shields.io/badge/Auth-Firebase-ffca28?style=for-the-badge&logo=firebase&logoColor=111111)
+[![License](https://img.shields.io/badge/License-MIT-9acd32?style=for-the-badge)](./LICENSE)
+[![Frontend](https://img.shields.io/badge/Frontend-Vercel-111111?style=for-the-badge&logo=vercel)](https://crypto-zip-fresh-chi.vercel.app)
+[![Backend](https://img.shields.io/badge/Backend-Render-46e3b7?style=for-the-badge&logo=render&logoColor=111111)](https://crypto-zip-fresh.onrender.com)
+[![Database](https://img.shields.io/badge/Database-PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Auth](https://img.shields.io/badge/Auth-Firebase-ffca28?style=for-the-badge&logo=firebase&logoColor=111111)](https://firebase.google.com/)
 
 </div>
 
