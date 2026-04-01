@@ -188,17 +188,18 @@
         .social-proof {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 10px;
             font-size: 13px;
             color: var(--muted);
         }
 
-        .stars { color: var(--yellow); letter-spacing: 2px; }
+        .stars { display:none; }
 
         .social-divider {
-            width: 1px; height: 20px;
-            background: var(--border);
+            display:none;
         }
+
+        .social-proof span:last-child { display:none; }
 
         /* ── RIGHT SIDE — Login card ── */
         .container {
@@ -411,7 +412,7 @@
         <!-- Social proof -->
         <div class="social-proof">
             <span class="stars">★★★★★</span>
-            <span>4.9/5 rating</span>
+            <span>Read-only API access keeps exchange permissions limited and secure.</span>
             <div class="social-divider"></div>
             <span>🔒 Read-only API — your funds are always safe</span>
         </div>
@@ -443,7 +444,7 @@
 
         <button class="login-btn" id="loginBtn" onclick="handleLogin()">
             <div class="spinner" id="spinner"></div>
-            <span id="loginText">🚀 Login</span>
+            <span id="loginText">Sign In</span>
         </button>
 
         <div class="or">OR</div>
@@ -536,7 +537,7 @@
                     msg.textContent = '❌ ' + data.message;
                     btn.disabled = false;
                     spinner.style.display = 'none';
-                    loginText.textContent = '🚀 Login';
+                    loginText.textContent = 'Sign In';
                 }
 
             } catch (err) {
@@ -548,7 +549,7 @@
                 }
                 btn.disabled = false;
                 spinner.style.display = 'none';
-                loginText.textContent = '🚀 Login';
+                loginText.textContent = 'Sign In';
             }
         }
 

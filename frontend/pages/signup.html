@@ -287,6 +287,8 @@
 
     <script>
         const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-backend-d9v8.onrender.com/api';
+        const strongPasswordMessage = 'Password must be at least 16 characters and include uppercase, lowercase, number, and special character.';
+        const isStrongPassword = (value) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{16,}$/.test(String(value || ''));
 
         async function handleSignup() {
             const name = document.getElementById('name').value.trim();
@@ -310,9 +312,9 @@
                 return;
             }
 
-            if (password.length < 6) {
+            if (!isStrongPassword(password)) {
                 msg.className = 'msg error';
-                msg.textContent = '⚠️ Password must be at least 6 characters.';
+                msg.textContent = `⚠️ ${strongPasswordMessage}`;
                 return;
             }
 

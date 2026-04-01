@@ -35,9 +35,10 @@
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
         .notif-btn { position:relative; background:var(--card); border:1px solid var(--border); border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:18px; }
         .notif-badge { position:absolute; top:-4px; right:-4px; background:var(--red); color:white; font-size:10px; font-weight:700; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
-        .profile-btn { display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:6px 12px; cursor:pointer; }
-        .avatar { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,var(--cyan),var(--green)); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#000; }
-        .profile-name { font-size:13px; color:var(--text); }
+        .profile-btn { display:flex; align-items:center; gap:12px; background:linear-gradient(180deg,rgba(16,35,55,0.96),rgba(10,26,42,0.96)); border:1px solid rgba(0,229,255,0.14); border-radius:16px; padding:8px 14px; min-width:170px; cursor:pointer; box-shadow:0 12px 28px rgba(0,0,0,.22); transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease; }
+        .profile-btn:hover { transform:translateY(-1px); border-color:rgba(0,229,255,0.34); box-shadow:0 16px 30px rgba(0,0,0,.28),0 0 0 1px rgba(0,229,255,.08) inset; }
+        .avatar { width:38px; height:38px; border-radius:14px; background:linear-gradient(135deg,var(--cyan),var(--green)); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; color:#03141f; box-shadow:0 10px 22px rgba(0,229,255,.2); }
+        .profile-name { font-size:13px; font-weight:600; color:#dffbff; white-space:nowrap; max-width:170px; overflow:hidden; text-overflow:ellipsis; letter-spacing:.01em; }
         .sidebar { position:fixed; top:calc(36px + var(--topbar-h)); left:0; width:var(--sidebar-w); height:calc(100vh - 36px - var(--topbar-h)); background:rgba(6,24,40,0.95); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:24px 0; z-index:90; overflow-y:auto; }
         .sidebar-section { padding:0 16px; margin-bottom:8px; }
         .sidebar-label { font-size:10px; font-weight:600; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; padding:0 8px; margin-bottom:8px; margin-top:16px; }
@@ -230,8 +231,8 @@
                 </div>
             </div>
             <div class="profile-btn" onclick="location.href='profile.html'">
-                <div class="avatar" id="topbar-avatar">?</div>
-                <span class="profile-name" id="topbar-name">Loading...</span>
+                <div class="avatar" id="topbar-avatar">CT</div>
+                <span class="profile-name" id="topbar-name">CryptoTrack User</span>
             </div>
         </div>
     </div>
@@ -430,8 +431,8 @@
         <div class="verify-card">
             <div class="verify-head">
                 <div>
-                    <div class="verify-title">Demo <span>Security Check</span></div>
-                    <div class="verify-sub">Complete the profile security step before using the dashboard. This is a demo flow, so the OTP is shown here instead of being sent anywhere.</div>
+                    <div class="verify-title"><span>Security Check</span></div>
+                    <div class="verify-sub">Complete the profile security step before using the dashboard. The OTP is shown here inside your account for this verification flow.</div>
                 </div>
                 <div class="verify-badge">Profile Security</div>
             </div>
@@ -452,17 +453,17 @@
                     <input class="verify-input" id="verify-aadhaar" type="text" maxlength="14" placeholder="1234 5678 9012">
                 </div>
                 <div class="verify-field full">
-                    <label class="verify-label" for="verify-otp">Enter Demo OTP</label>
+                    <label class="verify-label" for="verify-otp">Enter OTP</label>
                     <input class="verify-input" id="verify-otp" type="text" maxlength="6" placeholder="6-digit OTP">
                 </div>
             </div>
 
-            <div class="verify-note">For this demo, the OTP appears below on the dashboard itself. Nothing is sent to a real Aadhaar or phone service.</div>
+            <div class="verify-note">The OTP appears below inside the dashboard for this security check. Nothing is sent to an external service.</div>
 
             <div class="otp-panel">
                 <div class="otp-row">
                     <div>
-                        <div class="verify-label" style="margin-bottom:8px">Visible Demo OTP</div>
+                        <div class="verify-label" style="margin-bottom:8px">Visible OTP</div>
                         <div class="otp-copy" id="otp-preview">------</div>
                     </div>
                     <div class="otp-meta" id="otp-meta">Generate an OTP to begin verification.</div>
@@ -515,7 +516,7 @@
                 aadhaarInput.placeholder = demoVerificationState.aadhaar_masked;
             }
             setOtpPreview(demoVerificationState.otp_preview, demoVerificationState.otp_expires_at);
-            showVerificationMessage('Complete the demo phone and Aadhaar check to unlock the dashboard.', 'error');
+            showVerificationMessage('Complete the phone and Aadhaar security check to unlock the dashboard.', 'error');
         }
 
         function closeVerificationModal() {
@@ -574,7 +575,7 @@
                     otp_expires_at: data.expiresAt
                 };
                 setOtpPreview(data.otp, data.expiresAt);
-                showVerificationMessage('Demo OTP generated. Enter the same code below to continue.', 'success');
+                showVerificationMessage('OTP generated. Enter the same code below to continue.', 'success');
             } catch (error) {
                 showVerificationMessage(error.message || 'Could not generate OTP', 'error');
             } finally {

@@ -12,6 +12,8 @@ require('dotenv').config();
 const demoVerificationStore = new Map();
 
 const normalizePhone = (phone = '') => String(phone).replace(/\D/g, '');
+const isStrongPassword = (password = '') =>
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{16,}$/.test(String(password));
 const maskAadhaar = (aadhaar = '') => {
   const digits = String(aadhaar).replace(/\D/g, '');
   if (digits.length < 4) return digits;
@@ -34,8 +36,8 @@ router.post('/register', async (req, res) => {
     if (!name || !email || !password || !normalizedPhone)
       return res.status(400).json({ success: false, message: 'All fields are required' });
 
-    if (password.length < 6)
-      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    if (!isStrongPassword(password))
+      return res.status(400).json({ success: false, message: 'Password must be at least 16 characters and include uppercase, lowercase, number, and special character' });
 
     if (normalizedPhone.length < 10)
       return res.status(400).json({ success: false, message: 'Enter a valid phone number' });
@@ -339,6 +341,13 @@ router.post('/forgot-password', async (req, res) => {
 router.post('/reset-password', async (req, res) => {
   try {
     const { token, password } = req.body;
+
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 16 characters and include uppercase, lowercase, number, and special character'
+      });
+    }
 
     const result = await pool.query(
       'SELECT * FROM password_resets WHERE token = $1 AND expires_at > NOW()',
