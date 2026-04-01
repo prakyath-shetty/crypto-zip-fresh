@@ -96,15 +96,15 @@ Deploy the frontend on Vercel with:
 Environment variables:
 
 ```env
-FRONTEND_API_ORIGIN=https://your-render-app.onrender.com
-FRONTEND_PUBLIC_URL=https://your-vercel-app.vercel.app
-FIREBASE_API_KEY=your_firebase_api_key
-FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-FIREBASE_PROJECT_ID=your_project_id
-FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-FIREBASE_APP_ID=your_app_id
-FIREBASE_MEASUREMENT_ID=your_measurement_id
+FRONTEND_API_ORIGIN=https://crypto-zip-fresh.onrender.com
+FRONTEND_PUBLIC_URL=https://crypto-zip-fresh-chi.vercel.app
+FIREBASE_API_KEY=replace_with_your_firebase_api_key
+FIREBASE_AUTH_DOMAIN=replace_with_your_firebase_auth_domain
+FIREBASE_PROJECT_ID=replace_with_your_firebase_project_id
+FIREBASE_STORAGE_BUCKET=replace_with_your_firebase_storage_bucket
+FIREBASE_MESSAGING_SENDER_ID=replace_with_your_firebase_sender_id
+FIREBASE_APP_ID=replace_with_your_firebase_app_id
+FIREBASE_MEASUREMENT_ID=replace_with_your_firebase_measurement_id
 ```
 
 ## Backend Deployment
@@ -119,14 +119,14 @@ Environment variables:
 
 ```env
 PORT=10000
-DATABASE_URL=your_database_url
-JWT_SECRET=your_jwt_secret
+DATABASE_URL=replace_with_your_database_url
+JWT_SECRET=replace_with_your_jwt_secret
 JWT_EXPIRE=7d
-FRONTEND_URL=https://your-vercel-app.vercel.app
-CLIENT_URLS=https://your-vercel-app.vercel.app,http://localhost:5500,http://127.0.0.1:5500
-RESEND_API_KEY=your_resend_api_key
-RESEND_FROM_EMAIL=Crypto Portfolio <onboarding@resend.dev>
-NEWSDATA_API_KEY=your_newsdata_api_key
+FRONTEND_URL=https://crypto-zip-fresh-chi.vercel.app
+CLIENT_URLS=https://crypto-zip-fresh-chi.vercel.app,http://localhost:5500,http://127.0.0.1:5500
+RESEND_API_KEY=replace_with_your_resend_api_key
+RESEND_FROM_EMAIL=replace_with_your_verified_sender
+NEWSDATA_API_KEY=replace_with_your_newsdata_api_key
 ```
 
 ## Local Development
