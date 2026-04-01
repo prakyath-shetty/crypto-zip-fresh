@@ -1,36 +1,92 @@
 # CryptoTrack
 
-CryptoTrack is a full-stack crypto portfolio platform for tracking holdings, monitoring markets, managing watchlists, syncing exchange activity, and following crypto news in one place.
+![Platform](https://img.shields.io/badge/Platform-Web-0b1f35?style=for-the-badge)
+![Frontend](https://img.shields.io/badge/Frontend-Vercel-00e5ff?style=for-the-badge)
+![Backend](https://img.shields.io/badge/Backend-Render-00ff9c?style=for-the-badge)
+![Database](https://img.shields.io/badge/Database-PostgreSQL-ffd60a?style=for-the-badge)
 
-The project includes a static frontend deployed on Vercel and a Node.js + PostgreSQL backend deployed on Render.
+CryptoTrack is a full-stack crypto portfolio platform built for monitoring holdings, syncing exchange activity, tracking transactions, managing watchlists, and following live market movement from a single dashboard.
 
-## Features
+## Live Project
 
-- Email/password authentication
-- Firebase-based Google sign-in
-- Exchange connection flow for portfolio sync
-- Portfolio, holdings, and transaction history views
+- Frontend: [https://crypto-zip-fresh-chi.vercel.app](https://crypto-zip-fresh-chi.vercel.app)
+- Backend: [https://crypto-zip-fresh.onrender.com](https://crypto-zip-fresh.onrender.com)
+
+## Highlights
+
+- Portfolio dashboard with holdings, allocation, and performance insights
+- Exchange integration flow for syncing balances and trade history
+- Transaction history with exchange-aware filtering
 - Watchlist and live market monitoring
 - Price alerts and crypto news feed
-- Responsive dashboard with market overview and portfolio insights
+- Email/password auth with Firebase-based Google sign-in
+- PostgreSQL-backed user, wallet, holdings, and alert data
 
 ## Tech Stack
 
 - Frontend: HTML, CSS, JavaScript
 - Backend: Node.js, Express
 - Database: PostgreSQL
-- Authentication: JWT, Firebase Auth
+- Auth: JWT, Firebase Authentication
 - Email: Resend
-- Deployment: Vercel, Render
+- Market data: CoinGecko via backend market proxy
+- Deployment: Vercel and Render
+
+## Architecture
+
+```mermaid
+flowchart LR
+    A["Browser UI"] --> B["Vercel Frontend"]
+    B --> C["Render API"]
+    C --> D["PostgreSQL"]
+    C --> E["CoinGecko Market Proxy"]
+    C --> F["Exchange APIs"]
+    C --> G["Resend Email"]
+    B --> H["Firebase Auth"]
+```
 
 ## Project Structure
 
-- `frontend/` frontend application and Vercel build output source
-- `backend/` Express API, database access, auth, alerts, exchange routes
+- `frontend/` static client application and production build source
+- `backend/` Express API, auth, exchange logic, alerts, and database access
+
+## Core Modules
+
+### Frontend
+
+- `frontend/index.html` login entry point
+- `frontend/pages/dashboard.html` portfolio and market overview
+- `frontend/pages/portfolio.html` exchange connection and holdings view
+- `frontend/pages/history.html` transaction history and exchange sync
+- `frontend/pages/market.html` live market tracker
+- `frontend/pages/watchlist.html` watchlist monitoring
+- `frontend/crypto-api.js` shared API connector
+
+### Backend
+
+- `backend/server.js` API bootstrap and route registration
+- `backend/routes/auth.js` authentication routes
+- `backend/routes/exchange.js` exchange connection, portfolio, and trade sync
+- `backend/routes/transactions_route.js` transaction data APIs
+- `backend/routes/market_route.js` cached CoinGecko proxy routes
+- `backend/routes/alerts_route.js` alert management and price checks
+
+## API Overview
+
+Main route groups:
+
+- `/api/auth` authentication and account session endpoints
+- `/api/exchange` exchange connection, portfolio, and trade sync endpoints
+- `/api/transactions` transaction history endpoints
+- `/api/holdings` holdings management endpoints
+- `/api/alerts` alert management and live price checks
+- `/api/market` cached market-data proxy endpoints
+- `/api/news` news feed and newsletter endpoints
+- `/api/profile` profile and account settings endpoints
 
 ## Frontend Deployment
 
-Deploy the frontend on Vercel with these settings:
+Deploy the frontend on Vercel with:
 
 - Root Directory: `frontend`
 - Install Command: `npm install`
@@ -53,7 +109,7 @@ FIREBASE_MEASUREMENT_ID=your_measurement_id
 
 ## Backend Deployment
 
-Deploy the backend on Render with these settings:
+Deploy the backend on Render with:
 
 - Root Directory: `backend`
 - Build Command: `npm install`
@@ -75,7 +131,7 @@ NEWSDATA_API_KEY=your_newsdata_api_key
 
 ## Local Development
 
-Frontend:
+### Frontend
 
 ```bash
 cd frontend
@@ -83,7 +139,7 @@ npm install
 npm run build
 ```
 
-Backend:
+### Backend
 
 ```bash
 cd backend
@@ -91,7 +147,13 @@ npm install
 npm start
 ```
 
-## Production URLs
+## Roadmap
 
-- Frontend: [https://crypto-zip-fresh-chi.vercel.app](https://crypto-zip-fresh-chi.vercel.app)
-- Backend: [https://crypto-zip-fresh.onrender.com](https://crypto-zip-fresh.onrender.com)
+- Expand exchange coverage and sync depth
+- Improve portfolio analytics and P&L reporting
+- Add richer demo data mode for testing without exchange accounts
+- Improve market-data caching and resilience further
+
+## License
+
+This project is intended for personal and portfolio use unless you choose to add your own license.
