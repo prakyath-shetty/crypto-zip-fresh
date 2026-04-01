@@ -1290,12 +1290,39 @@
             }
         }
 
+        function renderProfileFromSource(source) {
+            if (!source) return;
+            const full = source.name || 'User';
+            const parts = full.split(' ');
+            const ini = initials(full);
+
+            document.getElementById('topbar-avatar').textContent = ini;
+            document.getElementById('topbar-name').textContent = full;
+
+            const bigAv = document.getElementById('big-avatar');
+            if (bigAv) bigAv.childNodes[0].textContent = ini;
+            document.getElementById('profile-display-name').textContent = full;
+            document.getElementById('profile-email-display').textContent = source.email || '';
+            document.getElementById('joined-date').textContent = '📅 Member since ' + formatDate(source.created_at || source.createdAt);
+
+            document.getElementById('input-firstname').value = parts[0] || '';
+            document.getElementById('input-lastname').value = parts.slice(1).join(' ') || '';
+            document.getElementById('input-email').value = source.email || '';
+            document.getElementById('input-phone').value = source.phone || '';
+            document.getElementById('input-bio').value = source.bio || '';
+
+            const ve = document.getElementById('verified-email');
+            if (ve) ve.textContent = source.email || '—';
+        }
+
         // ═══════════════════ LOAD PROFILE FROM BACKEND ═══════════════════
         async function loadProfile() {
             try {
+                renderProfileFromSource(userCache);
                 const res = await apiFetch(`${API}/auth/me`);
                 if (!res) return;
                 if (!res.ok) {
+                    renderProfileFromSource(userCache);
                     return;
                 }
                 const data = await res.json();
@@ -1621,6 +1648,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            renderProfileFromSource(userCache);
+            applyCachedVerificationState(userCache);
             loadProfile();
             loadProfileStats();
             loadSecurityStatus();
