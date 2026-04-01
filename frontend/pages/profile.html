@@ -1260,6 +1260,36 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
+        function applyCachedVerificationState(source) {
+            if (!source) return;
+
+            const phoneStatus = document.getElementById('phone-verification-status');
+            const phoneDesc = document.getElementById('phone-verification-desc');
+            if (phoneStatus) {
+                const verified = !!source.phone_verified;
+                phoneStatus.textContent = verified ? 'Verified' : 'Pending';
+                phoneStatus.className = `sec-status ${verified ? 'on' : 'off'}`;
+            }
+            if (phoneDesc) {
+                phoneDesc.textContent = source.phone
+                    ? `${source.phone_verified ? 'Verified number' : 'Saved number'}: ${source.phone}`
+                    : 'Add a phone number during login or dashboard verification';
+            }
+
+            const aadhaarStatus = document.getElementById('aadhaar-verification-status');
+            const aadhaarDesc = document.getElementById('aadhaar-verification-desc');
+            if (aadhaarStatus) {
+                const verified = !!source.demo_kyc_verified;
+                aadhaarStatus.textContent = verified ? 'Verified' : 'Pending';
+                aadhaarStatus.className = `sec-status ${verified ? 'on' : 'off'}`;
+            }
+            if (aadhaarDesc) {
+                aadhaarDesc.textContent = source.demo_kyc_verified
+                    ? `Verified demo identity: ${source.aadhaar_masked || 'Masked Aadhaar saved'}`
+                    : 'Complete the dashboard popup to finish the demo OTP check';
+            }
+        }
+
         // ═══════════════════ LOAD PROFILE FROM BACKEND ═══════════════════
         async function loadProfile() {
             try {
@@ -1673,35 +1703,16 @@
                     sessEl.className   = 'sec-status on';
                 }
 
+                applyCachedVerificationState(userCache);
+
                 const verifyRes = await apiFetch(`${API}/auth/demo-verification/status`);
                 if (!verifyRes) return;
                 const verifyData = await verifyRes.json();
                 const verification = verifyData.verification || {};
-
-                const phoneStatus = document.getElementById('phone-verification-status');
-                const phoneDesc = document.getElementById('phone-verification-desc');
-                if (phoneStatus) {
-                    phoneStatus.textContent = verification.phone_verified ? 'Verified' : 'Pending';
-                    phoneStatus.className = `sec-status ${verification.phone_verified ? 'on' : 'off'}`;
-                }
-                if (phoneDesc) {
-                    phoneDesc.textContent = verification.phone
-                        ? `${verification.phone_verified ? 'Verified number' : 'Saved number'}: ${verification.phone}`
-                        : 'Add a phone number during login or dashboard verification';
-                }
-
-                const aadhaarStatus = document.getElementById('aadhaar-verification-status');
-                const aadhaarDesc = document.getElementById('aadhaar-verification-desc');
-                if (aadhaarStatus) {
-                    aadhaarStatus.textContent = verification.demo_kyc_verified ? 'Verified' : 'Pending';
-                    aadhaarStatus.className = `sec-status ${verification.demo_kyc_verified ? 'on' : 'off'}`;
-                }
-                if (aadhaarDesc) {
-                    aadhaarDesc.textContent = verification.demo_kyc_verified
-                        ? `Verified demo identity: ${verification.aadhaar_masked || 'Masked Aadhaar saved'}`
-                        : 'Complete the dashboard popup to finish the demo OTP check';
-                }
-            } catch(e) {}
+                applyCachedVerificationState(verification);
+            } catch(e) {
+                applyCachedVerificationState(userCache);
+            }
         }
 
         async function toggleTwoFactor() {
