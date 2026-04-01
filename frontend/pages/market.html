@@ -266,7 +266,10 @@ async function loadMarket() {
   showBanner('🔄 Fetching live prices...', 'info');
   try {
     // Fetch coins market data
-    const coins = await cgFetch(`/coins/markets?vs_currency=usd&ids=${COIN_IDS}&order=market_cap_desc&per_page=20&page=1&price_change_percentage=24h`);
+    let coins = await cgFetch(`/coins/markets?vs_currency=usd&ids=${COIN_IDS}&order=market_cap_desc&per_page=20&page=1&price_change_percentage=24h`);
+    if (!Array.isArray(coins) || coins.length === 0) {
+      coins = await cgFetch('/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&price_change_percentage=24h');
+    }
 
     // Fetch global stats
     const globalData = await cgFetch('/global');
@@ -333,6 +336,10 @@ function renderTable() {
   if (sortField === 'mcap')   data.sort((a,b) => sortDir * (b.rawMcap - a.rawMcap));
 
   const tbody = document.getElementById('marketBody');
+  if (!allCoins.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted)">Market data is temporarily unavailable. Click Refresh to try again.</td></tr>`;
+    return;
+  }
   if (!data.length) {
     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted)">No coins found matching "${q}"</td></tr>`;
     return;
