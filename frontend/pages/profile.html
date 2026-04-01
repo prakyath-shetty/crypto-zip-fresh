@@ -1909,8 +1909,8 @@
                 const desc      = `${a.condition==='above'?'Above':'Below'} $${parseFloat(a.target_price).toLocaleString()}${isTrig?' ✅ Hit!':''}${a.note?' · '+a.note:''}`;
                 return { id:a.id, isUnread, icon, iconBg, iconColor, title, desc };
             });
-            const unread = items.filter(i=>i.isUnread).length;
-            updateNotifBadges(unread, waiting);
+            const activeCount = alerts.filter(a => a.is_active !== false).length;
+            updateNotifBadges(activeCount, waiting);
             if (!items.length) {
                 list.innerHTML = '<div class="notif-empty">🔕 No alerts yet.<br><a href="alerts.html" style="color:var(--cyan)">Create your first alert →</a></div>';
                 return;

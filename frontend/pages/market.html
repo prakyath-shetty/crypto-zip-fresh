@@ -93,7 +93,7 @@ tr:hover td{background:rgba(0,229,255,0.02);}
   <div class="logo">Crypto<span>Track</span></div>
   <div class="topbar-right">
     <div style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;"><div class="refresh-dot"></div>Live • <span id="countdown">30s</span></div>
-    <div class="notif-btn">🔔<div class="notif-badge">3</div></div>
+    <div class="notif-btn" onclick="location.href='alerts.html'">🔔<div class="notif-badge" id="notif-badge" style="display:none">0</div></div>
     <div class="profile-btn" onclick="location.href='profile.html'"><div class="avatar" id="topbar-avatar">CT</div><span id="topbar-name" style="font-size:13px;font-weight:600;color:#dffbff;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">CryptoTrack User</span></div>
   </div>
 </div>
@@ -108,7 +108,7 @@ tr:hover td{background:rgba(0,229,255,0.02);}
   </div>
   <div class="sidebar-section">
     <div class="sidebar-label">Tools</div>
-    <div class="nav-item" onclick="location.href='alerts.html'"><span class="nav-icon">🔔</span> Alerts <span class="nav-badge">2</span></div>
+    <div class="nav-item" onclick="location.href='alerts.html'"><span class="nav-icon">🔔</span> Alerts <span class="nav-badge" id="sidebar-alert-badge" style="display:none">0</span></div>
     <div class="nav-item" onclick="location.href='history.html'"><span class="nav-icon">🧾</span> Transaction History</div>
     <div class="nav-item" onclick="location.href='news.html'"><span class="nav-icon">📰</span> News</div>
   </div>
@@ -259,6 +259,28 @@ function showBanner(msg, type='info') {
   b.className = 'api-banner ' + type;
   b.textContent = msg;
   setTimeout(() => b.style.display = 'none', 3500);
+}
+
+async function loadAlertCount() {
+  try {
+    const res = await fetch(`${API}/alerts`, {
+      headers: { 'Authorization': `Bearer ${_token}` }
+    });
+    const data = await res.json();
+    const count = data.success && Array.isArray(data.alerts)
+      ? data.alerts.filter(a => a.is_active !== false).length
+      : 0;
+    const topBadge = document.getElementById('notif-badge');
+    const sideBadge = document.getElementById('sidebar-alert-badge');
+    if (topBadge) {
+      topBadge.textContent = count;
+      topBadge.style.display = count > 0 ? 'flex' : 'none';
+    }
+    if (sideBadge) {
+      sideBadge.textContent = count;
+      sideBadge.style.display = count > 0 ? 'inline-block' : 'none';
+    }
+  } catch (error) {}
 }
 
 // ── LOAD DATA ──
@@ -427,6 +449,7 @@ setInterval(() => {
 }, 1000);
 
 // ── INIT ──
+loadAlertCount();
 loadMarket();
 </script>
 <script src="../crypto-api.js"></script>

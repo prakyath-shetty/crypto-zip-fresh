@@ -189,7 +189,7 @@
     <div class="topbar">
         <div class="logo">Crypto<span>Track</span></div>
         <div class="topbar-right">
-            <div class="notif-btn" onclick="location.href='alerts.html'">🔔<div class="notif-badge">3</div></div>
+            <div class="notif-btn" onclick="location.href='alerts.html'">🔔<div class="notif-badge" id="notif-badge" style="display:none">0</div></div>
             <div class="profile-btn" onclick="location.href='profile.html'">
                 <div class="avatar" id="topbar-avatar">CT</div>
                 <span class="profile-name" id="topbar-name">CryptoTrack User</span>
@@ -207,7 +207,7 @@
         </div>
         <div class="sidebar-section">
             <div class="sidebar-label">Tools</div>
-            <div class="nav-item" onclick="location.href='alerts.html'"><span class="nav-icon">🔔</span> Alerts <span class="nav-badge">2</span></div>
+            <div class="nav-item" onclick="location.href='alerts.html'"><span class="nav-icon">🔔</span> Alerts <span class="nav-badge" id="sidebar-alert-badge" style="display:none">0</span></div>
             <div class="nav-item" onclick="location.href='history.html'"><span class="nav-icon">🧾</span> Transaction History</div>
             <div class="nav-item" onclick="location.href='news.html'"><span class="nav-icon">📰</span> News</div>
         </div>
@@ -431,11 +431,34 @@
         document.getElementById('topbar-avatar').textContent = initials;
         document.getElementById('topbar-name').textContent = fullName;
         document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+        loadAlertCount();
 
         function handleLogout() {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '../index.html';
+        }
+
+        async function loadAlertCount() {
+            try {
+                const res = await fetch(`${API}/alerts`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const count = data.success && Array.isArray(data.alerts)
+                    ? data.alerts.filter(a => a.is_active !== false).length
+                    : 0;
+                const topBadge = document.getElementById('notif-badge');
+                const sideBadge = document.getElementById('sidebar-alert-badge');
+                if (topBadge) {
+                    topBadge.textContent = count;
+                    topBadge.style.display = count > 0 ? 'flex' : 'none';
+                }
+                if (sideBadge) {
+                    sideBadge.textContent = count;
+                    sideBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                }
+            } catch (error) {}
         }
 
         const EXCHANGES = {

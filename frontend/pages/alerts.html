@@ -729,11 +729,11 @@ if (alertIdFromURL) {
             return { id: a.id, isUnread, icon, iconBg, iconColor, title, desc };
         });
 
-        const unread = items.filter(i => i.isUnread).length;
+        const activeCount = alerts.filter(a => a.is_active !== false).length;
         const badge = document.getElementById('notif-badge');
         const sideB = document.getElementById('waiting-badge');
         const waiting = alerts.filter(a => a.status === 'waiting').length;
-        if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? 'flex' : 'none'; }
+        if (badge) { badge.textContent = activeCount; badge.style.display = activeCount > 0 ? 'flex' : 'none'; }
         if (sideB) { sideB.textContent = waiting; sideB.style.display = waiting > 0 ? 'inline-block' : 'none'; }
 
         if (!items.length) {

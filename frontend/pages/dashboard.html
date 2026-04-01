@@ -1280,8 +1280,8 @@
                 return { id: a.id, isUnread, icon, iconBg, iconColor, title, desc };
             });
 
-            const unreadCount = items.filter(i => i.isUnread).length;
-            updateBadges(unreadCount);
+            const activeCount = alerts.filter(a => a.is_active !== false).length;
+            updateBadges(activeCount);
 
             if (!items.length) {
                 list.innerHTML = `<div class="notif-empty">🔕 No alerts yet.<br><a href="alerts.html" style="color:var(--cyan)">Create your first alert →</a></div>`;

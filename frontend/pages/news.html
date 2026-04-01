@@ -855,7 +855,7 @@
         </div>
         <div class="sidebar-section">
             <div class="sidebar-label">Tools</div>
-            <div class="nav-item" onclick="location.href='alerts.html'"><span class="nav-icon">🔔</span> Alerts <span class="nav-badge">2</span></div>
+            <div class="nav-item" onclick="location.href='alerts.html'"><span class="nav-icon">🔔</span> Alerts <span class="nav-badge" id="sidebar-alert-badge" style="display:none">0</span></div>
             <div class="nav-item" onclick="location.href='history.html'"><span class="nav-icon">🧾</span> Transaction History</div>
             <div class="nav-item active"><span class="nav-icon">📰</span> News</div>
         </div>
@@ -1264,9 +1264,11 @@
                 const desc      = `${a.condition==='above'?'Above':'Below'} $${parseFloat(a.target_price).toLocaleString()}${isTrig?' ✅ Hit!':''}${a.note?' · '+a.note:''}`;
                 return { id: a.id, isUnread, icon, iconBg, iconColor, title, desc };
             });
-            const unread = items.filter(i => i.isUnread).length;
+            const activeCount = alerts.filter(a => a.is_active !== false).length;
             const badge  = document.getElementById('notif-badge');
-            if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? 'flex' : 'none'; }
+            const sideBadge = document.getElementById('sidebar-alert-badge');
+            if (badge) { badge.textContent = activeCount; badge.style.display = activeCount > 0 ? 'flex' : 'none'; }
+            if (sideBadge) { sideBadge.textContent = activeCount; sideBadge.style.display = activeCount > 0 ? 'inline-block' : 'none'; }
             if (!items.length) {
                 list.innerHTML = '<div class="notif-empty">🔕 No alerts yet.<br><a href="alerts.html" style="color:var(--cyan)">Create your first alert →</a></div>';
                 return;
