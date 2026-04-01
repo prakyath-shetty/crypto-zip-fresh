@@ -268,6 +268,7 @@
 
         <input type="text" id="name" placeholder="Full Name">
         <input type="email" id="email" placeholder="Email">
+        <input type="tel" id="phone" placeholder="Phone Number">
         <input type="password" id="password" placeholder="Password">
         <input type="password" id="confirmPassword" placeholder="Confirm Password">
 
@@ -290,6 +291,7 @@
         async function handleSignup() {
             const name = document.getElementById('name').value.trim();
             const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
             const password = document.getElementById('password').value.trim();
             const confirmPassword = document.getElementById('confirmPassword').value.trim();
             const msg = document.getElementById('msg');
@@ -302,7 +304,7 @@
             msg.textContent = '';
 
             // Validate
-            if (!name || !email || !password || !confirmPassword) {
+            if (!name || !email || !phone || !password || !confirmPassword) {
                 msg.className = 'msg error';
                 msg.textContent = '⚠️ All fields are required.';
                 return;
@@ -329,7 +331,7 @@
                 const res = await fetch(`${API}/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password })
+                    body: JSON.stringify({ name, email, phone, password })
                 });
 
                 const data = await res.json();

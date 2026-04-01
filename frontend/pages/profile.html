@@ -1105,6 +1105,22 @@
                             </div>
                             <span class="sec-status on">✅ Verified</span>
                         </div>
+                        <div class="security-item">
+                            <div class="sec-icon" style="background:rgba(0,229,255,0.1)">ðŸ“±</div>
+                            <div class="sec-info">
+                                <div class="sec-label">Phone Verification</div>
+                                <div class="sec-desc" id="phone-verification-desc">Waiting for demo verification</div>
+                            </div>
+                            <span class="sec-status off" id="phone-verification-status">Pending</span>
+                        </div>
+                        <div class="security-item">
+                            <div class="sec-icon" style="background:rgba(153,69,255,0.12)">ðŸªª</div>
+                            <div class="sec-info">
+                                <div class="sec-label">Demo Aadhaar Check</div>
+                                <div class="sec-desc" id="aadhaar-verification-desc">Complete the security popup from the dashboard</div>
+                            </div>
+                            <span class="sec-status off" id="aadhaar-verification-status">Pending</span>
+                        </div>
                     </div>
 
                     <!-- Connected Exchanges -->
@@ -1655,6 +1671,35 @@
                 if (sessEl) {
                     sessEl.textContent = '1 Active';
                     sessEl.className   = 'sec-status on';
+                }
+
+                const verifyRes = await apiFetch(`${API}/auth/demo-verification/status`);
+                if (!verifyRes) return;
+                const verifyData = await verifyRes.json();
+                const verification = verifyData.verification || {};
+
+                const phoneStatus = document.getElementById('phone-verification-status');
+                const phoneDesc = document.getElementById('phone-verification-desc');
+                if (phoneStatus) {
+                    phoneStatus.textContent = verification.phone_verified ? 'Verified' : 'Pending';
+                    phoneStatus.className = `sec-status ${verification.phone_verified ? 'on' : 'off'}`;
+                }
+                if (phoneDesc) {
+                    phoneDesc.textContent = verification.phone
+                        ? `${verification.phone_verified ? 'Verified number' : 'Saved number'}: ${verification.phone}`
+                        : 'Add a phone number during login or dashboard verification';
+                }
+
+                const aadhaarStatus = document.getElementById('aadhaar-verification-status');
+                const aadhaarDesc = document.getElementById('aadhaar-verification-desc');
+                if (aadhaarStatus) {
+                    aadhaarStatus.textContent = verification.demo_kyc_verified ? 'Verified' : 'Pending';
+                    aadhaarStatus.className = `sec-status ${verification.demo_kyc_verified ? 'on' : 'off'}`;
+                }
+                if (aadhaarDesc) {
+                    aadhaarDesc.textContent = verification.demo_kyc_verified
+                        ? `Verified demo identity: ${verification.aadhaar_masked || 'Masked Aadhaar saved'}`
+                        : 'Complete the dashboard popup to finish the demo OTP check';
                 }
             } catch(e) {}
         }

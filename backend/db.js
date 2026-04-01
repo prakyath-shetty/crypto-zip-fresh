@@ -17,6 +17,10 @@ const initDB = async () => {
         email        VARCHAR(255) UNIQUE NOT NULL,
         password     VARCHAR(255) NOT NULL,
         phone        VARCHAR(20),
+        phone_verified BOOLEAN DEFAULT false,
+        demo_kyc_verified BOOLEAN DEFAULT false,
+        aadhaar_name VARCHAR(100),
+        aadhaar_masked VARCHAR(20),
         bio          TEXT,
         country      VARCHAR(60),
         currency     VARCHAR(10) DEFAULT 'USD',
@@ -125,6 +129,11 @@ const initDB = async () => {
         created_at TIMESTAMP DEFAULT NOW(),
         UNIQUE(user_id, exchange)
       );
+
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_verified BOOLEAN DEFAULT false;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS demo_kyc_verified BOOLEAN DEFAULT false;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS aadhaar_name VARCHAR(100);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS aadhaar_masked VARCHAR(20);
 
     `);
     console.log('✅ All database tables ready');

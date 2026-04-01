@@ -429,6 +429,10 @@
             <input type="email" id="email" placeholder="you@example.com">
         </div>
         <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" id="phone" placeholder="+91 98765 43210">
+        </div>
+        <div class="form-group">
             <label class="form-label">Password</label>
             <input type="password" id="password" placeholder="••••••••">
         </div>
@@ -487,6 +491,7 @@
 
         async function handleLogin() {
             const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
             const password = document.getElementById('password').value.trim();
             const msg = document.getElementById('msg');
             const btn = document.getElementById('loginBtn');
@@ -496,9 +501,9 @@
             msg.className = 'msg';
             msg.textContent = '';
 
-            if (!email || !password) {
+            if (!email || !password || !phone) {
                 msg.className = 'msg error';
-                msg.textContent = '⚠️ Please enter your email and password.';
+                msg.textContent = '⚠️ Please enter your email, phone number and password.';
                 return;
             }
 
@@ -513,7 +518,7 @@
                 const res = await fetch(`${API}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password }),
+                    body: JSON.stringify({ email, password, phone }),
                     signal: controller.signal
                 });
 

@@ -167,6 +167,34 @@
         .notif-footer{padding:12px 18px;border-top:1px solid rgba(0,200,255,0.08);text-align:center;}
         .notif-footer a{font-size:13px;color:var(--cyan);cursor:pointer;}
         .notif-footer a:hover{text-decoration:underline;}
+        .verify-overlay{position:fixed;inset:0;background:rgba(2,8,16,0.82);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;z-index:1200;padding:24px}
+        .verify-overlay.open{display:flex}
+        .verify-card{width:min(560px,100%);background:linear-gradient(180deg,rgba(11,31,53,0.98),rgba(6,24,40,0.98));border:1px solid rgba(0,229,255,0.18);border-radius:22px;padding:28px;box-shadow:0 30px 80px rgba(0,0,0,0.5)}
+        .verify-head{display:flex;justify-content:space-between;gap:16px;margin-bottom:22px}
+        .verify-title{font-family:'Rajdhani',sans-serif;font-size:30px;font-weight:700}
+        .verify-title span{color:var(--cyan)}
+        .verify-sub{font-size:13px;line-height:1.7;color:var(--muted);max-width:360px}
+        .verify-badge{align-self:flex-start;background:rgba(0,255,156,0.12);border:1px solid rgba(0,255,156,0.26);border-radius:999px;padding:8px 12px;color:var(--green);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+        .verify-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+        .verify-field{display:flex;flex-direction:column;gap:6px}
+        .verify-field.full{grid-column:1 / -1}
+        .verify-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+        .verify-input{width:100%;padding:13px 15px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:14px;outline:none}
+        .verify-input:focus{border-color:var(--cyan)}
+        .verify-note{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:16px}
+        .otp-panel{background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.16);border-radius:16px;padding:16px;margin-bottom:18px}
+        .otp-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+        .otp-copy{font-family:'Rajdhani',sans-serif;font-size:30px;font-weight:700;letter-spacing:4px;color:var(--yellow)}
+        .otp-meta{font-size:12px;color:var(--muted)}
+        .verify-actions{display:flex;gap:12px;flex-wrap:wrap}
+        .verify-btn{flex:1;min-width:180px;padding:13px 16px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-weight:700}
+        .verify-btn.primary{background:linear-gradient(90deg,var(--cyan),var(--green));border:none;color:#000}
+        .verify-btn:disabled{opacity:0.55;cursor:not-allowed}
+        .verify-status{display:none;border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px}
+        .verify-status.show{display:block}
+        .verify-status.error{background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.25);color:#ff9aac}
+        .verify-status.success{background:rgba(0,255,156,0.1);border:1px solid rgba(0,255,156,0.24);color:var(--green)}
+        @media (max-width:700px){.verify-grid{grid-template-columns:1fr}.verify-head{flex-direction:column}.verify-card{padding:22px}}
     </style>
 </head>
 <body>
@@ -398,12 +426,200 @@
 
     <div class="api-banner" id="api-status">🔄 Connecting to CoinGecko API...</div>
 
+    <div class="verify-overlay" id="verify-overlay">
+        <div class="verify-card">
+            <div class="verify-head">
+                <div>
+                    <div class="verify-title">Demo <span>Security Check</span></div>
+                    <div class="verify-sub">Complete the profile security step before using the dashboard. This is a demo flow, so the OTP is shown here instead of being sent anywhere.</div>
+                </div>
+                <div class="verify-badge">Profile Security</div>
+            </div>
+
+            <div class="verify-status" id="verify-status"></div>
+
+            <div class="verify-grid">
+                <div class="verify-field full">
+                    <label class="verify-label" for="verify-name">Full Name</label>
+                    <input class="verify-input" id="verify-name" type="text" placeholder="Enter your full name">
+                </div>
+                <div class="verify-field">
+                    <label class="verify-label" for="verify-phone">Phone Number</label>
+                    <input class="verify-input" id="verify-phone" type="tel" placeholder="+91 98765 43210">
+                </div>
+                <div class="verify-field">
+                    <label class="verify-label" for="verify-aadhaar">Aadhaar Number</label>
+                    <input class="verify-input" id="verify-aadhaar" type="text" maxlength="14" placeholder="1234 5678 9012">
+                </div>
+                <div class="verify-field full">
+                    <label class="verify-label" for="verify-otp">Enter Demo OTP</label>
+                    <input class="verify-input" id="verify-otp" type="text" maxlength="6" placeholder="6-digit OTP">
+                </div>
+            </div>
+
+            <div class="verify-note">For this demo, the OTP appears below on the dashboard itself. Nothing is sent to a real Aadhaar or phone service.</div>
+
+            <div class="otp-panel">
+                <div class="otp-row">
+                    <div>
+                        <div class="verify-label" style="margin-bottom:8px">Visible Demo OTP</div>
+                        <div class="otp-copy" id="otp-preview">------</div>
+                    </div>
+                    <div class="otp-meta" id="otp-meta">Generate an OTP to begin verification.</div>
+                </div>
+            </div>
+
+            <div class="verify-actions">
+                <button class="verify-btn" id="generate-otp-btn" onclick="startDemoVerification()">Generate OTP</button>
+                <button class="verify-btn primary" id="verify-otp-btn" onclick="completeDemoVerification()">Verify & Continue</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ── CONFIG ──
         const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-backend-d9v8.onrender.com/api';
         const token = localStorage.getItem('token');
         const user  = JSON.parse(localStorage.getItem('user') || 'null');
         if (!token || !user) window.location.href = '../index.html';
+        let demoVerificationState = null;
+
+        function showVerificationMessage(message, type = 'error') {
+            const el = document.getElementById('verify-status');
+            if (!el) return;
+            el.textContent = message;
+            el.className = `verify-status show ${type}`;
+        }
+
+        function setOtpPreview(otp, expiresAt) {
+            const preview = document.getElementById('otp-preview');
+            const meta = document.getElementById('otp-meta');
+            if (preview) preview.textContent = otp || '------';
+            if (meta) {
+                meta.textContent = expiresAt
+                    ? `OTP valid until ${new Date(expiresAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+                    : 'Generate an OTP to begin verification.';
+            }
+        }
+
+        function openVerificationModal(status) {
+            demoVerificationState = status || demoVerificationState || {};
+            const overlay = document.getElementById('verify-overlay');
+            if (overlay) overlay.classList.add('open');
+            const nameInput = document.getElementById('verify-name');
+            const phoneInput = document.getElementById('verify-phone');
+            const aadhaarInput = document.getElementById('verify-aadhaar');
+            if (nameInput) nameInput.value = demoVerificationState.aadhaar_name || user?.name || '';
+            if (phoneInput) phoneInput.value = demoVerificationState.phone || user?.phone || '';
+            if (aadhaarInput && demoVerificationState.aadhaar_masked) {
+                aadhaarInput.placeholder = demoVerificationState.aadhaar_masked;
+            }
+            setOtpPreview(demoVerificationState.otp_preview, demoVerificationState.otp_expires_at);
+            showVerificationMessage('Complete the demo phone and Aadhaar check to unlock the dashboard.', 'error');
+        }
+
+        function closeVerificationModal() {
+            const overlay = document.getElementById('verify-overlay');
+            if (overlay) overlay.classList.remove('open');
+        }
+
+        async function loadDemoVerificationStatus() {
+            try {
+                const res = await fetch(`${API}/auth/demo-verification/status`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Could not load verification status');
+                const data = await res.json();
+                demoVerificationState = data.verification || {};
+                if (demoVerificationState.demo_kyc_verified) {
+                    closeVerificationModal();
+                    return;
+                }
+                openVerificationModal(demoVerificationState);
+            } catch (e) {
+                openVerificationModal({ phone: user?.phone || '', aadhaar_name: user?.name || '' });
+            }
+        }
+
+        async function startDemoVerification() {
+            const fullName = document.getElementById('verify-name').value.trim();
+            const phone = document.getElementById('verify-phone').value.trim();
+            const aadhaarNumber = document.getElementById('verify-aadhaar').value.trim();
+            const button = document.getElementById('generate-otp-btn');
+
+            if (!fullName || !phone || !aadhaarNumber) {
+                showVerificationMessage('Enter your full name, phone number and Aadhaar number first.', 'error');
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = 'Generating...';
+            try {
+                const res = await fetch(`${API}/auth/demo-verification/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ fullName, phone, aadhaarNumber })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.message || 'Could not generate OTP');
+                demoVerificationState = {
+                    ...(demoVerificationState || {}),
+                    phone,
+                    aadhaar_name: fullName,
+                    aadhaar_masked: data.aadhaarMasked,
+                    otp_preview: data.otp,
+                    otp_expires_at: data.expiresAt
+                };
+                setOtpPreview(data.otp, data.expiresAt);
+                showVerificationMessage('Demo OTP generated. Enter the same code below to continue.', 'success');
+            } catch (error) {
+                showVerificationMessage(error.message || 'Could not generate OTP', 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Generate OTP';
+            }
+        }
+
+        async function completeDemoVerification() {
+            const otp = document.getElementById('verify-otp').value.trim();
+            const button = document.getElementById('verify-otp-btn');
+            if (!otp) {
+                showVerificationMessage('Enter the 6-digit OTP shown above.', 'error');
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = 'Verifying...';
+            try {
+                const res = await fetch(`${API}/auth/demo-verification/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ otp })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.message || 'OTP verification failed');
+                localStorage.setItem('user', JSON.stringify({
+                    ...(JSON.parse(localStorage.getItem('user') || '{}')),
+                    ...(data.user || {})
+                }));
+                showVerificationMessage('Verification complete. Dashboard unlocked.', 'success');
+                setTimeout(() => {
+                    closeVerificationModal();
+                    location.reload();
+                }, 700);
+            } catch (error) {
+                showVerificationMessage(error.message || 'OTP verification failed', 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Verify & Continue';
+            }
+        }
 
         function getStoredExchanges() {
             try { return JSON.parse(localStorage.getItem('exchanges') || '{}'); } catch (e) { return {}; }
@@ -1112,6 +1328,7 @@
 
         loadUserInfo();
         initCharts();
+        loadDemoVerificationStatus();
         refreshAll();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
