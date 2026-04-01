@@ -1,159 +1,220 @@
 # CryptoTrack
+MIT License
 
-![Platform](https://img.shields.io/badge/Platform-Web-0b1f35?style=for-the-badge)
-![Frontend](https://img.shields.io/badge/Frontend-Vercel-00e5ff?style=for-the-badge)
-![Backend](https://img.shields.io/badge/Backend-Render-00ff9c?style=for-the-badge)
-![Database](https://img.shields.io/badge/Database-PostgreSQL-ffd60a?style=for-the-badge)
+CryptoTrack is a full-stack crypto portfolio management platform built to help users monitor holdings, sync exchange activity, track transactions, create price alerts, manage watchlists, and follow live market movement from one unified dashboard.
 
-CryptoTrack is a full-stack crypto portfolio platform built for monitoring holdings, syncing exchange activity, tracking transactions, managing watchlists, and following live market movement from a single dashboard.
+[Explore the Live App](https://crypto-zip-fresh-chi.vercel.app)
 
-## Live Project
+[Frontend Live](https://crypto-zip-fresh-chi.vercel.app) · [Backend API](https://crypto-zip-fresh.onrender.com) · [Report Bug](https://github.com/prakyath-shetty/crypto-zip-fresh/issues) · [Request Feature](https://github.com/prakyath-shetty/crypto-zip-fresh/issues)
 
-- Frontend: [https://crypto-zip-fresh-chi.vercel.app](https://crypto-zip-fresh-chi.vercel.app)
-- Backend: [https://crypto-zip-fresh.onrender.com](https://crypto-zip-fresh.onrender.com)
+## Table of Contents
 
-## Highlights
+- [About The Project](#about-the-project)
+- [Built With](#built-with)
+- [Key Features](#key-features)
+- [System Architecture](#system-architecture)
+- [Getting Started](#getting-started)
+- [Deployment](#deployment)
+- [API Overview](#api-overview)
+- [Contact](#contact)
 
-- Portfolio dashboard with holdings, allocation, and performance insights
-- Exchange integration flow for syncing balances and trade history
-- Transaction history with exchange-aware filtering
-- Watchlist and live market monitoring
-- Price alerts and crypto news feed
-- Email/password auth with Firebase-based Google sign-in
-- PostgreSQL-backed user, wallet, holdings, and alert data
+## About The Project
 
-## Tech Stack
+Managing crypto portfolios across multiple platforms can quickly become fragmented. Prices change constantly, exchange balances are spread across different apps, and keeping track of transactions, alerts, and holdings manually is inefficient.
 
-- Frontend: HTML, CSS, JavaScript
-- Backend: Node.js, Express
-- Database: PostgreSQL
-- Auth: JWT, Firebase Authentication
-- Email: Resend
-- Market data: CoinGecko via backend market proxy
-- Deployment: Vercel and Render
+CryptoTrack was designed as a modern portfolio platform that brings these workflows together into a single experience. Users can manage their profile, connect exchanges, monitor live market data, review holdings and transaction history, build a watchlist, and stay updated with crypto news from one dashboard-driven application.
 
-## Architecture
+### Why this project stands out
 
-```mermaid
-flowchart LR
-    A["Browser UI"] --> B["Vercel Frontend"]
-    B --> C["Render API"]
-    C --> D["PostgreSQL"]
-    C --> E["CoinGecko Market Proxy"]
-    C --> F["Exchange APIs"]
-    C --> G["Resend Email"]
-    B --> H["Firebase Auth"]
-```
+- Exchange-aware portfolio tracking with holdings and sync-ready transaction history
+- Dedicated dashboard for portfolio insights, market metrics, and allocation views
+- Built-in watchlist, alerts, and crypto news workflow
+- Firebase-powered Google sign-in alongside email/password authentication
+- Cached backend market proxy to reduce direct CoinGecko rate-limit issues
 
-## Project Structure
+## Built With
 
-- `frontend/` static client application and production build source
-- `backend/` Express API, auth, exchange logic, alerts, and database access
-
-## Core Modules
+This project uses a deployment-ready frontend and backend architecture designed for real-world hosting.
 
 ### Frontend
 
-- `frontend/index.html` login entry point
-- `frontend/pages/dashboard.html` portfolio and market overview
-- `frontend/pages/portfolio.html` exchange connection and holdings view
-- `frontend/pages/history.html` transaction history and exchange sync
-- `frontend/pages/market.html` live market tracker
-- `frontend/pages/watchlist.html` watchlist monitoring
-- `frontend/crypto-api.js` shared API connector
+- HTML
+- CSS
+- JavaScript
 
 ### Backend
 
-- `backend/server.js` API bootstrap and route registration
-- `backend/routes/auth.js` authentication routes
-- `backend/routes/exchange.js` exchange connection, portfolio, and trade sync
-- `backend/routes/transactions_route.js` transaction data APIs
-- `backend/routes/market_route.js` cached CoinGecko proxy routes
-- `backend/routes/alerts_route.js` alert management and price checks
+- Node.js
+- Express
+- PostgreSQL
 
-## API Overview
+### Cloud and Infrastructure
 
-Main route groups:
+- Firebase Authentication
+- Resend
+- Vercel
+- Render
 
-- `/api/auth` authentication and account session endpoints
-- `/api/exchange` exchange connection, portfolio, and trade sync endpoints
-- `/api/transactions` transaction history endpoints
-- `/api/holdings` holdings management endpoints
-- `/api/alerts` alert management and live price checks
-- `/api/market` cached market-data proxy endpoints
-- `/api/news` news feed and newsletter endpoints
-- `/api/profile` profile and account settings endpoints
+## Key Features
 
-## Frontend Deployment
+| Area | Capabilities |
+| --- | --- |
+| Dashboard | Portfolio overview, market stats, allocation insights, recent transactions, performance widgets |
+| Portfolio | Connect exchange accounts, fetch holdings, filter by selected exchange, review allocation and asset details |
+| Transactions | View transaction history, sync exchange trades, filter by transaction type and exchange |
+| Watchlist | Add and monitor coins, follow sparkline movement, track daily gainers and losers |
+| Alerts | Create price alerts, manage status, trigger notifications, review alert activity |
+| News | Browse crypto news categories and market-related headlines |
+| Authentication | Email/password login, Firebase Google sign-in, profile and session management |
 
-Deploy the frontend on Vercel with:
+## System Architecture
+
+```mermaid
+flowchart LR
+    A["Client Browser"] --> B["Vercel Frontend"]
+    B --> C["Render Backend API"]
+    C --> D["PostgreSQL Database"]
+    C --> E["Exchange APIs"]
+    C --> F["CoinGecko Market Proxy"]
+    C --> G["Resend Email Service"]
+    B --> H["Firebase Authentication"]
+```
+
+## Getting Started
+
+To run the project locally, set up the backend first and then the frontend.
+
+### Prerequisites
+
+- Node.js v18+
+- PostgreSQL database
+- Firebase project for Google authentication
+- Resend account for email delivery
+
+### Local Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/prakyath-shetty/crypto-zip-fresh.git
+cd crypto-zip-fresh
+```
+
+### Backend Setup
+
+```bash
+cd backend
+npm install
+```
+
+Create a `.env` file in `backend/`:
+
+```env
+PORT=10000
+DATABASE_URL=<your_postgresql_connection_string>
+JWT_SECRET=<your_jwt_secret>
+JWT_EXPIRE=7d
+FRONTEND_URL=http://localhost:5500
+CLIENT_URLS=http://localhost:5500,http://127.0.0.1:5500
+RESEND_API_KEY=<your_resend_api_key>
+RESEND_FROM_EMAIL=<your_verified_sender>
+NEWSDATA_API_KEY=<your_newsdata_api_key>
+```
+
+Run the backend:
+
+```bash
+npm start
+```
+
+### Frontend Setup
+
+```bash
+cd ../frontend
+npm install
+```
+
+Create frontend environment variables in your hosting setup or use them during build:
+
+```env
+FRONTEND_API_ORIGIN=http://localhost:5000
+FRONTEND_PUBLIC_URL=http://localhost:5500
+FIREBASE_API_KEY=<your_firebase_api_key>
+FIREBASE_AUTH_DOMAIN=<your_firebase_auth_domain>
+FIREBASE_PROJECT_ID=<your_firebase_project_id>
+FIREBASE_STORAGE_BUCKET=<your_firebase_storage_bucket>
+FIREBASE_MESSAGING_SENDER_ID=<your_firebase_sender_id>
+FIREBASE_APP_ID=<your_firebase_app_id>
+FIREBASE_MEASUREMENT_ID=<your_firebase_measurement_id>
+```
+
+Build the frontend:
+
+```bash
+npm run build
+```
+
+## Deployment
+
+### Frontend on Vercel
 
 - Root Directory: `frontend`
 - Install Command: `npm install`
 - Build Command: `npm run build`
 - Output Directory: `dist`
 
-Environment variables:
+Recommended environment variables:
 
 ```env
 FRONTEND_API_ORIGIN=https://crypto-zip-fresh.onrender.com
 FRONTEND_PUBLIC_URL=https://crypto-zip-fresh-chi.vercel.app
-FIREBASE_API_KEY=replace_with_your_firebase_api_key
-FIREBASE_AUTH_DOMAIN=replace_with_your_firebase_auth_domain
-FIREBASE_PROJECT_ID=replace_with_your_firebase_project_id
-FIREBASE_STORAGE_BUCKET=replace_with_your_firebase_storage_bucket
-FIREBASE_MESSAGING_SENDER_ID=replace_with_your_firebase_sender_id
-FIREBASE_APP_ID=replace_with_your_firebase_app_id
-FIREBASE_MEASUREMENT_ID=replace_with_your_firebase_measurement_id
+FIREBASE_API_KEY=<your_firebase_api_key>
+FIREBASE_AUTH_DOMAIN=<your_firebase_auth_domain>
+FIREBASE_PROJECT_ID=<your_firebase_project_id>
+FIREBASE_STORAGE_BUCKET=<your_firebase_storage_bucket>
+FIREBASE_MESSAGING_SENDER_ID=<your_firebase_sender_id>
+FIREBASE_APP_ID=<your_firebase_app_id>
+FIREBASE_MEASUREMENT_ID=<your_firebase_measurement_id>
 ```
 
-## Backend Deployment
-
-Deploy the backend on Render with:
+### Backend on Render
 
 - Root Directory: `backend`
 - Build Command: `npm install`
 - Start Command: `npm start`
 
-Environment variables:
+Recommended environment variables:
 
 ```env
 PORT=10000
-DATABASE_URL=replace_with_your_database_url
-JWT_SECRET=replace_with_your_jwt_secret
+DATABASE_URL=<your_postgresql_connection_string>
+JWT_SECRET=<your_jwt_secret>
 JWT_EXPIRE=7d
 FRONTEND_URL=https://crypto-zip-fresh-chi.vercel.app
 CLIENT_URLS=https://crypto-zip-fresh-chi.vercel.app,http://localhost:5500,http://127.0.0.1:5500
-RESEND_API_KEY=replace_with_your_resend_api_key
-RESEND_FROM_EMAIL=replace_with_your_verified_sender
-NEWSDATA_API_KEY=replace_with_your_newsdata_api_key
+RESEND_API_KEY=<your_resend_api_key>
+RESEND_FROM_EMAIL=<your_verified_sender>
+NEWSDATA_API_KEY=<your_newsdata_api_key>
 ```
 
-## Local Development
+## API Overview
 
-### Frontend
+Main route groups exposed by the backend:
 
-```bash
-cd frontend
-npm install
-npm run build
-```
+- `/api/auth`
+- `/api/profile`
+- `/api/exchange`
+- `/api/transactions`
+- `/api/holdings`
+- `/api/alerts`
+- `/api/market`
+- `/api/news`
+- `/api/watchlist`
+- `/api/wallet`
 
-### Backend
+## Contact
 
-```bash
-cd backend
-npm install
-npm start
-```
+Prakyath Shetty
 
-## Roadmap
-
-- Expand exchange coverage and sync depth
-- Improve portfolio analytics and P&L reporting
-- Add richer demo data mode for testing without exchange accounts
-- Improve market-data caching and resilience further
-
-## License
-
-This project is intended for personal and portfolio use unless you choose to add your own license.
+- GitHub: [@prakyath-shetty](https://github.com/prakyath-shetty)
+- Project Repository: [crypto-zip-fresh](https://github.com/prakyath-shetty/crypto-zip-fresh)
