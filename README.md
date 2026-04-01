@@ -47,6 +47,7 @@ CryptoTrack was built to bring these workflows together into a single product ex
 - **Unified Portfolio Workflow:** Holdings, transactions, exchange sync, alerts, and market monitoring are accessible from one product.
 - **Exchange-Aware Data Flow:** Portfolio and history views are designed around a selected exchange workflow rather than disconnected manual screens.
 - **Resilient Market Data Layer:** CoinGecko requests are routed through a cached backend proxy to reduce direct rate-limit problems on the frontend.
+- **Responsive User Experience:** Core product pages are refined for both desktop and mobile without changing the underlying workflow.
 - **Production Deployment Setup:** Frontend and backend are already structured for Vercel and Render deployment.
 
 ---
@@ -87,13 +88,14 @@ This project uses a clean frontend-backend architecture designed for deployment 
 | Watchlist | Track selected coins with sparkline movement and quick actions |
 | Alerts | Create and manage price alerts with backend-driven live checks |
 | News | Browse crypto headlines and category-based market news |
-| Authentication | Email/password auth, Firebase Google sign-in, profile and account settings |
+| Authentication | Email/password auth, Firebase Google sign-in, verification flow, profile and account settings |
 
 Additional highlights:
 
 - Cached backend market proxy for CoinGecko requests
 - Resend-based email delivery for alert and account flows
 - PostgreSQL-backed user, holdings, transactions, and alert storage
+- Mobile-friendly layout refinements across core product pages
 
 ---
 
@@ -189,6 +191,7 @@ FIREBASE_MEASUREMENT_ID=<your_firebase_measurement_id>
 - Install Command: `npm install`
 - Build Command: `npm run build`
 - Output Directory: `dist`
+- Production URL: `https://crypto-zip-fresh-chi.vercel.app`
 
 Recommended environment variables:
 
@@ -209,6 +212,7 @@ FIREBASE_MEASUREMENT_ID=<your_firebase_measurement_id>
 - Root Directory: `backend`
 - Build Command: `npm install`
 - Start Command: `npm start`
+- Production URL: `https://crypto-zip-fresh.onrender.com`
 
 Recommended environment variables:
 
