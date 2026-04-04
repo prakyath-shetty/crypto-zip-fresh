@@ -825,7 +825,31 @@
             try {
                 const res  = await fetch(`${API}/alerts`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
-                return data.alerts || [];
+                let alerts = data.alerts || [];
+
+                if (alerts.length > 0) {
+                    const ids = [...new Set(alerts.map(a => a.coin_id).filter(Boolean))].join(',');
+                    if (ids) {
+                        try {
+                            const priceRes = await fetch(`${API}/alerts/prices?ids=${ids}`, {
+                                headers: { 'Authorization': `Bearer ${token}` },
+                                signal: AbortSignal.timeout(10000)
+                            });
+                            const priceData = await priceRes.json();
+                            if (priceData.triggered?.length) {
+                                const refreshed = await fetch(`${API}/alerts`, {
+                                    headers: { 'Authorization': `Bearer ${token}` }
+                                });
+                                const refreshedData = await refreshed.json();
+                                alerts = refreshedData.alerts || alerts;
+                            }
+                        } catch (_) {
+                            // Keep dashboard usable even if alert price refresh fails.
+                        }
+                    }
+                }
+
+                return alerts;
             } catch(e) { return []; }
         }
 
