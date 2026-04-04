@@ -1712,7 +1712,8 @@
             if (!confirm('Deactivate your account? You can reactivate by logging in again.')) return;
             try {
                 const res = await apiFetch(`${API}/profile/deactivate`, { method: 'POST' });
-                const d = await res.json();
+                if (!res) return;
+                const d = await res.json().catch(() => ({}));
                 if (res.ok) {
                     showToast('Account deactivated. Logging out...');
                     setTimeout(handleLogout, 2000);
@@ -1729,7 +1730,8 @@
             if (confirmed !== 'DELETE') { showToast('Cancelled — text did not match.', true); return; }
             try {
                 const res = await apiFetch(`${API}/profile/delete-account`, { method: 'DELETE' });
-                const d = await res.json();
+                if (!res) return;
+                const d = await res.json().catch(() => ({}));
                 if (res.ok) {
                     alert('Your account has been deleted. You will now be logged out.');
                     handleLogout();
@@ -1745,7 +1747,8 @@
             if (!confirm('Revoke all active sessions? You will be logged out on all devices.')) return;
             try {
                 const res = await apiFetch(`${API}/profile/revoke-sessions`, { method: 'POST' });
-                const d = await res.json();
+                if (!res) return;
+                const d = await res.json().catch(() => ({}));
                 if (res.ok) {
                     showToast('All sessions revoked! Logging out...');
                     setTimeout(handleLogout, 2000);
