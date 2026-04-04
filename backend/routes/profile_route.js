@@ -79,8 +79,14 @@ router.delete('/delete-account', protect, async (req, res) => {
         await db.query('DELETE FROM holdings              WHERE user_id = $1', [id]);
         await db.query('DELETE FROM watchlist             WHERE user_id = $1', [id]);
         await db.query('DELETE FROM wallets               WHERE user_id = $1', [id]);
+        await db.query('DELETE FROM bank_accounts         WHERE user_id = $1', [id]);
+        await db.query('DELETE FROM exchange_connections  WHERE user_id = $1', [id]);
         await db.query('DELETE FROM password_resets       WHERE user_id = $1', [id]);
-        await db.query('DELETE FROM newsletter_subscribers WHERE user_id = $1', [id]);
+        try {
+            await db.query('DELETE FROM newsletter_subscribers WHERE user_id = $1', [id]);
+        } catch (_) {
+            // Older databases may not have the newsletter_subscribers table.
+        }
         await db.query('DELETE FROM users                 WHERE id      = $1', [id]);
         res.json({ success: true, message: 'Account permanently deleted' });
     } catch (e) {

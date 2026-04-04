@@ -16,6 +16,7 @@ const initDB = async () => {
         name         VARCHAR(100) NOT NULL,
         email        VARCHAR(255) UNIQUE NOT NULL,
         password     VARCHAR(255) NOT NULL,
+        is_active    BOOLEAN DEFAULT true,
         phone        VARCHAR(20),
         phone_verified BOOLEAN DEFAULT false,
         demo_kyc_verified BOOLEAN DEFAULT false,
@@ -130,6 +131,7 @@ const initDB = async () => {
         UNIQUE(user_id, exchange)
       );
 
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_verified BOOLEAN DEFAULT false;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS demo_kyc_verified BOOLEAN DEFAULT false;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS aadhaar_name VARCHAR(100);
