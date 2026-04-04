@@ -1586,7 +1586,7 @@
 
             if (!currentPw || !newPw || !confirmPw) { showToast('Please fill all password fields', true); return; }
             if (newPw !== confirmPw) { showToast('New passwords do not match', true); return; }
-            if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{16,}$/.test(String(newPw || ''))) { showToast('Password must be at least 16 characters and include uppercase, lowercase, number, and special character', true); return; }
+            if (!/^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{10,}$/.test(String(newPw || ''))) { showToast('Password must be at least 10 characters and include an uppercase letter, a number, and a special character', true); return; }
 
             const btn = document.getElementById('change-pw-btn');
             btn.textContent = '⏳ Updating...';
@@ -1594,8 +1594,10 @@
 
             try {
                 const res = await apiFetch(`${API}/profile/password`, { method: 'PATCH', body: JSON.stringify({ current_password: currentPw, new_password: newPw }) });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.message || 'Failed to change password');
+                if (!res) return;
+                const data = typeof res.json === 'function' ? await res.json().catch(() => ({})) : (res || {});
+                const ok = typeof res.ok === 'boolean' ? res.ok : !!data.success;
+                if (!ok) throw new Error(data.message || 'Failed to change password');
                 document.getElementById('input-current-pw').value = '';
                 document.getElementById('input-new-pw').value = '';
                 document.getElementById('input-confirm-pw').value = '';

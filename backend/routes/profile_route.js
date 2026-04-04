@@ -4,7 +4,7 @@ const db       = require('../db');
 const bcrypt   = require('bcryptjs');
 const { protect } = require('../middleware/auth');
 const isStrongPassword = (password = '') =>
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{16,}$/.test(String(password));
+    /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{10,}$/.test(String(password));
 
 // ── GET /api/profile ── fetch full profile
 router.get('/', protect, async (req, res) => {
@@ -44,7 +44,7 @@ router.patch('/password', protect, async (req, res) => {
     if (!current_password || !new_password)
         return res.status(400).json({ success: false, message: 'Both passwords required' });
     if (!isStrongPassword(new_password))
-        return res.status(400).json({ success: false, message: 'Password must be at least 16 characters and include uppercase, lowercase, number, and special character' });
+        return res.status(400).json({ success: false, message: 'Password must be at least 10 characters and include an uppercase letter, a number, and a special character' });
     try {
         const user = await db.query('SELECT password FROM users WHERE id = $1', [req.user.id]);
         if (!user.rows.length)

@@ -13,7 +13,7 @@ const demoVerificationStore = new Map();
 
 const normalizePhone = (phone = '') => String(phone).replace(/\D/g, '');
 const isStrongPassword = (password = '') =>
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{16,}$/.test(String(password));
+  /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{10,}$/.test(String(password));
 const maskAadhaar = (aadhaar = '') => {
   const digits = String(aadhaar).replace(/\D/g, '');
   if (digits.length < 4) return digits;
@@ -37,7 +37,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'All fields are required' });
 
     if (!isStrongPassword(password))
-      return res.status(400).json({ success: false, message: 'Password must be at least 16 characters and include uppercase, lowercase, number, and special character' });
+      return res.status(400).json({ success: false, message: 'Password must be at least 10 characters and include an uppercase letter, a number, and a special character' });
 
     if (normalizedPhone.length < 10)
       return res.status(400).json({ success: false, message: 'Enter a valid phone number' });
@@ -255,7 +255,7 @@ router.post('/demo-verification/start', protect, async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Demo OTP generated. Use the code shown in the dashboard to continue.',
+      message: ' OTP generated. Use the code shown in the dashboard to continue.',
       otp,
       expiresAt,
       aadhaarMasked: maskAadhaar(aadhaarDigits)
@@ -301,7 +301,7 @@ router.post('/demo-verification/complete', protect, async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Demo identity verification completed',
+      message: ' identity verification completed',
       user: updated.rows[0]
     });
   } catch (err) {
@@ -345,7 +345,7 @@ router.post('/reset-password', async (req, res) => {
     if (!isStrongPassword(password)) {
       return res.status(400).json({
         success: false,
-        message: 'Password must be at least 16 characters and include uppercase, lowercase, number, and special character'
+        message: 'Password must be at least 10 characters and include an uppercase letter, a number, and a special character'
       });
     }
 
