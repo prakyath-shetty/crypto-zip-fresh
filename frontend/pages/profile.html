@@ -1261,7 +1261,7 @@
 
     <script>
         // ═══════════════════ CONFIG ═══════════════════
-        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-backend-d9v8.onrender.com/api';
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-zip-fresh.onrender.com/api';
 
         // ── Global fetch wrapper — auto-redirect on token expiry ──
         async function apiFetch(url, opts = {}) {
@@ -1917,7 +1917,7 @@
             const tkn = localStorage.getItem('token');
             if (!tkn) return;
             try {
-                const _api = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-backend-d9v8.onrender.com/api';
+                const _api = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-zip-fresh.onrender.com/api';
                 const res   = await fetch(_api + '/alerts', { headers:{'Authorization':'Bearer '+tkn} });
                 const data  = await res.json();
                 const alerts = data.alerts || [];

@@ -12,7 +12,7 @@ const firebaseStorageBucket = process.env.FIREBASE_STORAGE_BUCKET || '__FIREBASE
 const firebaseMessagingSenderId = process.env.FIREBASE_MESSAGING_SENDER_ID || '__FIREBASE_MESSAGING_SENDER_ID__';
 const firebaseAppId = process.env.FIREBASE_APP_ID || '__FIREBASE_APP_ID__';
 const firebaseMeasurementId = process.env.FIREBASE_MEASUREMENT_ID || '__FIREBASE_MEASUREMENT_ID__';
-const sourceBackendOrigin = 'https://crypto-backend-d9v8.onrender.com';
+const sourceBackendOrigin = 'https://crypto-zip-fresh.onrender.com';
 const sourceFrontendUrl = 'https://crypto-frontend-app-six.vercel.app';
 
 await rm(distDir, { recursive: true, force: true });

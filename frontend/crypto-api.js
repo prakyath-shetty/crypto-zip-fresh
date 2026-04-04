@@ -1,10 +1,10 @@
 // ============================================================
 //  crypto-api.js — Frontend ↔ Backend Connector
-//  Backend: https://crypto-backend-d9v8.onrender.com
+//  Backend: https://crypto-zip-fresh.onrender.com
 //  Frontend: https://crypto-frontend-app-six.vercel.app
 // ============================================================
 
-const API_BASE = 'https://crypto-backend-d9v8.onrender.com';
+const API_BASE = 'https://crypto-zip-fresh.onrender.com';
 
 function resolveApiUrl(path) {
     if (/^https?:\/\//i.test(path)) return path;

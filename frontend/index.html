@@ -465,7 +465,7 @@
         </div>
         <div class="form-group">
             <label class="form-label">Phone Number</label>
-            <input type="tel" id="phone" placeholder="+91 98765 43210">
+            <input type="tel" id="phone" placeholder="+91 xxxxx xxxxx">
         </div>
         <div class="form-group">
             <label class="form-label">Password</label>
@@ -504,7 +504,7 @@
             function fmt(v) { return v>=1000?'$'+v.toLocaleString('en',{maximumFractionDigits:0}):'$'+v.toFixed(2); }
             const marketApi = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
                 ? 'http://localhost:5000/api'
-                : 'https://crypto-backend-d9v8.onrender.com/api';
+                : 'https://crypto-zip-fresh.onrender.com/api';
             fetch(`${marketApi}/market/simple/price?ids=bitcoin,ethereum,solana,binancecoin&vs_currencies=usd&include_24hr_change=true`)
             .then(r=>r.json()).then(d=>{
                 const chips = document.querySelectorAll('.price-chip');
@@ -522,7 +522,7 @@
     <script>
         const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
             ? 'http://localhost:5000/api'
-            : 'https://crypto-backend-d9v8.onrender.com/api';
+            : 'https://crypto-zip-fresh.onrender.com/api';
 
         async function handleLogin() {
             const email = document.getElementById('email').value.trim();
@@ -647,7 +647,7 @@
                     msg.textContent = '⏳ Completing Google sign-in...';
 
                     try {
-                        const res = await fetch('https://crypto-backend-d9v8.onrender.com/api/auth/google-login', {
+                        const res = await fetch('https://crypto-zip-fresh.onrender.com/api/auth/google-login', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ email, name })

@@ -971,7 +971,7 @@
     </div>
 
     <script>
-        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-backend-d9v8.onrender.com/api';
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-zip-fresh.onrender.com/api';
         const token  = localStorage.getItem('token');
         const user   = JSON.parse(localStorage.getItem('user') || 'null');
         if (!token || !user) { window.location.href = '../index.html'; }
@@ -1327,7 +1327,7 @@
             const tkn = localStorage.getItem('token');
             if (!tkn) return;
             try {
-                const _api = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-backend-d9v8.onrender.com/api';
+                const _api = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-zip-fresh.onrender.com/api';
                 const res  = await fetch(_api + '/alerts', { headers: { 'Authorization': 'Bearer ' + tkn } });
                 const data = await res.json();
                 window._notifAlerts = data.alerts || [];

@@ -286,7 +286,7 @@
     </div>
 
     <script>
-        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-backend-d9v8.onrender.com/api';
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://crypto-zip-fresh.onrender.com/api';
         const strongPasswordMessage = 'Password must be at least 16 characters and include uppercase, lowercase, number, and special character.';
         const isStrongPassword = (value) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{16,}$/.test(String(value || ''));
 
@@ -414,7 +414,7 @@
                     const email = session.user.email;
                     const name = session.user.user_metadata?.full_name || email.split('@')[0];
                     try {
-                        const res = await fetch('https://crypto-backend-d9v8.onrender.com/api/auth/google-login', {
+                        const res = await fetch('https://crypto-zip-fresh.onrender.com/api/auth/google-login', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ email, name })
