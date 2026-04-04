@@ -1,13 +1,7 @@
-// ============================================================
-//  api.js — Frontend ↔ Backend Connector
-//  Drop this file into your frontend at: /js/api.js
-//  Then add to every HTML page:  <script src="/js/api.js"></script>
-//
-//  Backend: https://crypto-backend-d9v8.onrender.com
-//  Frontend: https://crypto-frontend-app-six.vercel.app
-// ============================================================
-
-const API_BASE = 'https://crypto-backend-d9v8.onrender.com';
+// Deprecated duplicate helper kept only for reference.
+// The live frontend uses /frontend/crypto-api.js.
+// If this file is ever reused manually, point it at the current backend.
+const API_BASE = 'https://crypto-zip-fresh.onrender.com';
 
 // ── TOKEN / SESSION HELPERS ───────────────────────────────────
 const Auth = {
@@ -88,7 +82,7 @@ const AuthAPI = {
             method: 'POST',
             body: JSON.stringify({
                 email,
-                frontendUrl: 'https://crypto-frontend-app-six.vercel.app'
+                frontendUrl: window.location.origin
             })
         }),
 

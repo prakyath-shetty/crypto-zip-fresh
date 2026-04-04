@@ -828,7 +828,12 @@
                 let alerts = data.alerts || [];
 
                 if (alerts.length > 0) {
-                    const ids = [...new Set(alerts.map(a => a.coin_id).filter(Boolean))].join(',');
+                    const ids = [...new Set(
+                        alerts
+                            .filter(a => a.status === 'waiting')
+                            .map(a => a.coin_id)
+                            .filter(Boolean)
+                    )].sort().join(',');
                     if (ids) {
                         try {
                             const priceRes = await fetch(`${API}/alerts/prices?ids=${ids}`, {

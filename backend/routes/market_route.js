@@ -88,6 +88,7 @@ router.get('/simple/price', async (req, res) => {
         const data = await fetchCoinGeckoJson(`${BASE_URL}/simple/price?${qs}`, 45 * 1000);
         res.json(data);
     } catch (error) {
+        console.error('[market/simple/price] CoinGecko fetch failed:', error.message || error);
         res.json({});
     }
 });
@@ -97,6 +98,7 @@ router.get('/global', async (req, res) => {
         const data = await fetchCoinGeckoJson(`${BASE_URL}/global`, 5 * 60 * 1000);
         res.json(data);
     } catch (error) {
+        console.error('[market/global] CoinGecko fetch failed:', error.message || error);
         res.json({ data: {} });
     }
 });
@@ -118,6 +120,7 @@ router.get('/coins/markets', async (req, res) => {
         const data = await fetchCoinGeckoJson(`${BASE_URL}/coins/markets?${qs}`, 2 * 60 * 1000);
         res.json(data);
     } catch (error) {
+        console.error('[market/coins/markets] CoinGecko fetch failed:', error.message || error);
         res.json([]);
     }
 });
@@ -140,6 +143,7 @@ router.get('/coins/:coinId/market_chart', async (req, res) => {
         const data = await fetchCoinGeckoJson(`${BASE_URL}/coins/${coinId}/market_chart?${qs}`, 5 * 60 * 1000);
         res.json(data);
     } catch (error) {
+        console.error(`[market/coins/${coinId}/market_chart] CoinGecko fetch failed:`, error.message || error);
         res.json({ prices: [], total_volumes: [] });
     }
 });
@@ -163,6 +167,7 @@ router.get('/coins/:coinId', async (req, res) => {
         const data = await fetchCoinGeckoJson(`${BASE_URL}/coins/${coinId}?${qs}`, 10 * 60 * 1000);
         res.json(data);
     } catch (error) {
+        console.error(`[market/coins/${coinId}] CoinGecko fetch failed:`, error.message || error);
         res.json({});
     }
 });

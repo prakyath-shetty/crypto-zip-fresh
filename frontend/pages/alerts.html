@@ -408,7 +408,8 @@ const alertIdFromURL = params.get('alertId');
     ];
     const COIN_MAP = {};
     COINS.forEach(c => { COIN_MAP[c.id] = c; COIN_MAP[c.sym.toLowerCase()] = c; });
-    const COIN_IDS = COINS.map(c => c.id).join(',');
+    const ALERT_POLL_SECONDS = 120;
+    const FALLBACK_PRICE_IDS = COINS.slice(0, 6).map(c => c.id);
 
     // ── STATE ──
     let livePrices    = {};
@@ -521,7 +522,7 @@ if (alertIdFromURL) {
             document.getElementById('targetPrice').value = '';
             document.getElementById('alertNote').value   = '';
             document.getElementById('modal-desc').textContent =
-                `Alert set for ${opt.dataset.name} — price ${condition} ${fmtP(target)}. Auto-checking every 30 seconds!`;
+                `Alert set for ${opt.dataset.name} — price ${condition} ${fmtP(target)}. Auto-checking every ${ALERT_POLL_SECONDS} seconds!`;
             document.getElementById('successModal').classList.add('open');
 
         } catch (err) {
@@ -573,9 +574,26 @@ if (alertIdFromURL) {
     }
 
     // ── LIVE PRICE FETCH (via backend — single round-trip: prices + alert check) ──
+    function getAlertPriceIds() {
+        const waitingIds = alerts
+            .filter(a => a.status === 'waiting' && a.active !== false)
+            .map(a => a.coinId)
+            .filter(Boolean);
+        const source = waitingIds.length ? waitingIds : FALLBACK_PRICE_IDS;
+        return [...new Set(source)].sort();
+    }
+
     async function fetchPrices() {
         try {
-            const res = await fetch(`${API}/alerts/prices?ids=${COIN_IDS}`, {
+            const ids = getAlertPriceIds();
+            if (!ids.length) {
+                livePrices = {};
+                renderAlerts();
+                renderPricesBox();
+                return;
+            }
+
+            const res = await fetch(`${API}/alerts/prices?ids=${ids.join(',')}`, {
                 headers: { 'Authorization': `Bearer ${token}` },
                 signal: AbortSignal.timeout(10000)
             });
@@ -795,10 +813,10 @@ if (alertIdFromURL) {
     }
 
     // ── AUTO REFRESH ──
-    let cd = 30;
+    let cd = ALERT_POLL_SECONDS;
     setInterval(() => {
         cd--;
-        if (cd <= 0) { cd = 30; fetchPrices(); }
+        if (cd <= 0) { cd = ALERT_POLL_SECONDS; fetchPrices(); }
         document.getElementById('countdown').textContent = cd + 's';
     }, 1000);
 

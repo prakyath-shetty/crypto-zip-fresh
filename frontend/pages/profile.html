@@ -1280,6 +1280,20 @@
             }
             return res;
         }
+        async function readApiResponse(res) {
+            if (!res) {
+                return { ok: false, data: { success: false, message: 'Session expired. Please log in again.' } };
+            }
+            if (typeof res.json === 'function') {
+                try {
+                    const data = await res.json();
+                    return { ok: !!res.ok, data };
+                } catch (_) {
+                    return { ok: !!res.ok, data: {} };
+                }
+            }
+            return { ok: !!res.success, data: res || {} };
+        }
         const token = localStorage.getItem('token');
         const userCache = JSON.parse(localStorage.getItem('user') || 'null');
         if (!token || !userCache) { window.location.href = '../index.html'; }
@@ -1556,8 +1570,8 @@
 
             try {
                 const res = await apiFetch(`${API}/profile`, { method: 'PATCH', body: JSON.stringify({ name, phone, bio }) });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.message || 'Failed to save');
+                const { ok, data } = await readApiResponse(res);
+                if (!ok) throw new Error(data.message || 'Failed to save');
 
                 // Update localStorage
                 const cached = JSON.parse(localStorage.getItem('user') || '{}');
@@ -1615,7 +1629,8 @@
             const container = document.getElementById('connected-exchanges-list');
             try {
                 const res = await apiFetch(`${API}/exchange/list`);
-                const data = await res.json();
+                const { ok, data } = await readApiResponse(res);
+                if (!ok) throw new Error(data.message || 'Could not load exchanges');
                 const exchanges = data.exchanges || [];
 
                 if (exchanges.length === 0) {
@@ -1646,11 +1661,12 @@
             if (!confirm(`Disconnect ${exchange}? Your portfolio data from this exchange will be removed.`)) return;
             try {
                 const res = await apiFetch(`${API}/exchange/${exchange}`, { method: 'DELETE' });
-                if (!res.ok) throw new Error('Failed');
+                const { ok, data } = await readApiResponse(res);
+                if (!ok) throw new Error(data.message || 'Failed');
                 showToast(`${exchange} disconnected!`);
                 loadConnectedExchanges();
             } catch (err) {
-                showToast('Could not disconnect exchange', true);
+                showToast(err.message || 'Could not disconnect exchange', true);
             }
         }
 
@@ -1714,16 +1730,15 @@
             if (!confirm('Deactivate your account? You can reactivate by logging in again.')) return;
             try {
                 const res = await apiFetch(`${API}/profile/deactivate`, { method: 'POST' });
-                if (!res) return;
-                const d = await res.json().catch(() => ({}));
-                if (res.ok) {
+                const { ok, data } = await readApiResponse(res);
+                if (ok) {
                     showToast('Account deactivated. Logging out...');
                     setTimeout(handleLogout, 2000);
                 } else {
-                    showToast(d.message || 'Could not deactivate account', true);
+                    showToast(data.message || 'Could not deactivate account', true);
                 }
             } catch(e) {
-                showToast('Could not reach server.', true);
+                showToast(e.message || 'Could not deactivate account', true);
             }
         }
 
@@ -1732,16 +1747,15 @@
             if (confirmed !== 'DELETE') { showToast('Cancelled — text did not match.', true); return; }
             try {
                 const res = await apiFetch(`${API}/profile/delete-account`, { method: 'DELETE' });
-                if (!res) return;
-                const d = await res.json().catch(() => ({}));
-                if (res.ok) {
+                const { ok, data } = await readApiResponse(res);
+                if (ok) {
                     alert('Your account has been deleted. You will now be logged out.');
                     handleLogout();
                 } else {
-                    showToast(d.message || 'Could not delete account', true);
+                    showToast(data.message || 'Could not delete account', true);
                 }
             } catch(e) {
-                showToast('Could not reach server.', true);
+                showToast(e.message || 'Could not delete account', true);
             }
         }
 
@@ -1749,16 +1763,15 @@
             if (!confirm('Revoke all active sessions? You will be logged out on all devices.')) return;
             try {
                 const res = await apiFetch(`${API}/profile/revoke-sessions`, { method: 'POST' });
-                if (!res) return;
-                const d = await res.json().catch(() => ({}));
-                if (res.ok) {
+                const { ok, data } = await readApiResponse(res);
+                if (ok) {
                     showToast('All sessions revoked! Logging out...');
                     setTimeout(handleLogout, 2000);
                 } else {
-                    showToast(d.message || 'Could not revoke sessions', true);
+                    showToast(data.message || 'Could not revoke sessions', true);
                 }
             } catch(e) {
-                showToast('Could not reach server.', true);
+                showToast(e.message || 'Could not revoke sessions', true);
             }
         }
 
@@ -1787,8 +1800,8 @@
                 applyCachedVerificationState(userCache);
 
                 const verifyRes = await apiFetch(`${API}/auth/demo-verification/status`);
-                if (!verifyRes) return;
-                const verifyData = await verifyRes.json();
+                const { ok, data: verifyData } = await readApiResponse(verifyRes);
+                if (!ok) return;
                 const verification = verifyData.verification || {};
                 applyCachedVerificationState(verification);
             } catch(e) {

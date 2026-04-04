@@ -24,7 +24,18 @@ function delay(ms) {
 }
 
 async function fetchAlertPrices(ids) {
-    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`;
+    const normalizedIds = [...new Set(String(ids || '')
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean))]
+        .sort()
+        .join(',');
+
+    if (!normalizedIds) {
+        return {};
+    }
+
+    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${normalizedIds}&vs_currencies=usd&include_24hr_change=true`;
     const cacheEntry = ALERT_PRICE_CACHE.get(url);
     const cached = getAlertPriceCache(url);
     if (cached && cacheEntry?.expiresAt > Date.now()) return cached;
@@ -106,20 +117,32 @@ router.post('/', protect, async (req, res) => {
 
 // GET /api/alerts/prices — fetch live prices from CoinGecko + run alert check server-side
 router.get('/prices', protect, async (req, res) => {
-    const { ids } = req.query;
-    if (!ids) {
-        return res.status(400).json({ success: false, message: 'ids query param required.' });
-    }
-
     try {
-        const prices = await fetchAlertPrices(ids);
+        const requestedIds = [...new Set(String(req.query.ids || '')
+            .split(',')
+            .map((id) => id.trim())
+            .filter(Boolean))];
+
         const alertsRes = await db.query(
             `SELECT * FROM alerts WHERE user_id = $1 AND status = 'waiting'`,
             [req.user.id]
         );
+        const waitingAlerts = alertsRes.rows;
+
+        const alertCoinIds = [...new Set(waitingAlerts.map((alert) => alert.coin_id).filter(Boolean))];
+        const effectiveIds = requestedIds.length
+            ? alertCoinIds.filter((coinId) => requestedIds.includes(coinId))
+            : alertCoinIds;
+
+        if (!effectiveIds.length) {
+            return res.json({ success: true, prices: {}, triggered: [] });
+        }
+
+        const prices = await fetchAlertPrices(effectiveIds.join(','));
 
         const triggered = [];
-        for (const alert of alertsRes.rows) {
+        for (const alert of waitingAlerts) {
+            if (!effectiveIds.includes(alert.coin_id)) continue;
             const currentPrice = prices[alert.coin_id]?.usd;
             if (!currentPrice) continue;
 
