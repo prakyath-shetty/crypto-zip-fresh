@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const CACHE = new Map();
 const BASE_URL = 'https://api.coingecko.com/api/v3';
+const DEFAULT_STALE_MS = 30 * 60 * 1000;
 
 function getCachedEntry(key) {
     return CACHE.get(key) || null;
@@ -15,10 +16,18 @@ function getCached(key) {
     return hit.data;
 }
 
-function setCached(key, data, ttlMs) {
+function getStale(key) {
+    const hit = CACHE.get(key);
+    if (!hit) return null;
+    if (hit.staleUntil <= Date.now()) return null;
+    return hit.data;
+}
+
+function setCached(key, data, ttlMs, staleMs = DEFAULT_STALE_MS) {
     CACHE.set(key, {
         data,
-        expiresAt: Date.now() + ttlMs
+        expiresAt: Date.now() + ttlMs,
+        staleUntil: Date.now() + ttlMs + staleMs
     });
 }
 
@@ -26,11 +35,12 @@ function delay(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function fetchCoinGeckoJson(url, ttlMs) {
+async function fetchCoinGeckoJson(url, ttlMs, fallbackKey = null) {
     const cached = getCached(url);
     if (cached) return cached;
 
-    const staleEntry = getCachedEntry(url);
+    const staleEntry = getStale(url);
+    const routeFallback = fallbackKey ? getStale(fallbackKey) : null;
     let lastError = null;
 
     for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -50,6 +60,7 @@ async function fetchCoinGeckoJson(url, ttlMs) {
 
             const json = await response.json();
             setCached(url, json, ttlMs);
+            if (fallbackKey) setCached(fallbackKey, json, ttlMs);
             return json;
         } catch (error) {
             lastError = error;
@@ -62,8 +73,12 @@ async function fetchCoinGeckoJson(url, ttlMs) {
         }
     }
 
-    if (staleEntry?.data) {
-        return staleEntry.data;
+    if (staleEntry) {
+        return staleEntry;
+    }
+
+    if (routeFallback) {
+        return routeFallback;
     }
 
     throw lastError || new Error('CoinGecko request failed');
@@ -91,7 +106,7 @@ router.get('/simple/price', async (req, res) => {
             { ids, vs_currencies, include_24hr_change },
             ['ids', 'vs_currencies', 'include_24hr_change']
         );
-        const data = await fetchCoinGeckoJson(`${BASE_URL}/simple/price?${qs}`, 45 * 1000);
+        const data = await fetchCoinGeckoJson(`${BASE_URL}/simple/price?${qs}`, 45 * 1000, `fallback:simple-price:${vs_currencies}:${include_24hr_change}`);
         res.json(data);
     } catch (error) {
         console.error('[market/simple/price] CoinGecko fetch failed:', error.message || error);
@@ -101,7 +116,7 @@ router.get('/simple/price', async (req, res) => {
 
 router.get('/global', async (req, res) => {
     try {
-        const data = await fetchCoinGeckoJson(`${BASE_URL}/global`, 5 * 60 * 1000);
+        const data = await fetchCoinGeckoJson(`${BASE_URL}/global`, 5 * 60 * 1000, 'fallback:global');
         res.json(data);
     } catch (error) {
         console.error('[market/global] CoinGecko fetch failed:', error.message || error);
@@ -123,7 +138,11 @@ router.get('/coins/markets', async (req, res) => {
             },
             ['vs_currency', 'ids', 'order', 'per_page', 'page', 'price_change_percentage', 'sparkline']
         );
-        const data = await fetchCoinGeckoJson(`${BASE_URL}/coins/markets?${qs}`, 2 * 60 * 1000);
+        const data = await fetchCoinGeckoJson(
+            `${BASE_URL}/coins/markets?${qs}`,
+            2 * 60 * 1000,
+            `fallback:coins-markets:${req.query.vs_currency || 'usd'}:${req.query.order || 'market_cap_desc'}:${req.query.per_page || '20'}:${req.query.page || '1'}`
+        );
         res.json(data);
     } catch (error) {
         console.error('[market/coins/markets] CoinGecko fetch failed:', error.message || error);
@@ -146,7 +165,7 @@ router.get('/coins/:coinId/market_chart', async (req, res) => {
             },
             ['vs_currency', 'days', 'interval']
         );
-        const data = await fetchCoinGeckoJson(`${BASE_URL}/coins/${coinId}/market_chart?${qs}`, 5 * 60 * 1000);
+        const data = await fetchCoinGeckoJson(`${BASE_URL}/coins/${coinId}/market_chart?${qs}`, 5 * 60 * 1000, `fallback:market-chart:${coinId}:${req.query.vs_currency || 'usd'}:${req.query.days || '30'}`);
         res.json(data);
     } catch (error) {
         console.error(`[market/coins/${coinId}/market_chart] CoinGecko fetch failed:`, error.message || error);
@@ -170,7 +189,7 @@ router.get('/coins/:coinId', async (req, res) => {
             },
             ['localization', 'tickers', 'community_data', 'developer_data']
         );
-        const data = await fetchCoinGeckoJson(`${BASE_URL}/coins/${coinId}?${qs}`, 10 * 60 * 1000);
+        const data = await fetchCoinGeckoJson(`${BASE_URL}/coins/${coinId}?${qs}`, 10 * 60 * 1000, `fallback:coin-detail:${coinId}`);
         res.json(data);
     } catch (error) {
         console.error(`[market/coins/${coinId}] CoinGecko fetch failed:`, error.message || error);
