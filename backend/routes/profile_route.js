@@ -63,6 +63,7 @@ router.patch('/password', protect, async (req, res) => {
 // ── POST /api/profile/deactivate ── temporarily disable account
 router.post('/deactivate', protect, async (req, res) => {
     try {
+        await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true');
         await db.query('UPDATE users SET is_active = false WHERE id = $1', [req.user.id]);
         res.json({ success: true, message: 'Account deactivated' });
     } catch (e) {
@@ -70,27 +71,49 @@ router.post('/deactivate', protect, async (req, res) => {
     }
 });
 
+async function tableExists(client, tableName) {
+    const result = await client.query('SELECT to_regclass($1) AS table_ref', [tableName]);
+    return !!result.rows[0]?.table_ref;
+}
+
 // ── DELETE /api/profile/delete-account ── permanently delete all data
 router.delete('/delete-account', protect, async (req, res) => {
+    const client = await db.connect();
     try {
         const id = req.user.id;
-        await db.query('DELETE FROM alerts                WHERE user_id = $1', [id]);
-        await db.query('DELETE FROM transactions          WHERE user_id = $1', [id]);
-        await db.query('DELETE FROM holdings              WHERE user_id = $1', [id]);
-        await db.query('DELETE FROM watchlist             WHERE user_id = $1', [id]);
-        await db.query('DELETE FROM wallets               WHERE user_id = $1', [id]);
-        await db.query('DELETE FROM bank_accounts         WHERE user_id = $1', [id]);
-        await db.query('DELETE FROM exchange_connections  WHERE user_id = $1', [id]);
-        await db.query('DELETE FROM password_resets       WHERE user_id = $1', [id]);
-        try {
-            await db.query('DELETE FROM newsletter_subscribers WHERE user_id = $1', [id]);
-        } catch (_) {
-            // Older databases may not have the newsletter_subscribers table.
+        const user = await client.query('SELECT id FROM users WHERE id = $1', [id]);
+        if (!user.rows.length) {
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
-        await db.query('DELETE FROM users                 WHERE id      = $1', [id]);
+
+        await client.query('BEGIN');
+
+        const deletions = [
+            'alerts',
+            'transactions',
+            'holdings',
+            'watchlist',
+            'wallets',
+            'bank_accounts',
+            'exchange_connections',
+            'password_resets',
+            'newsletter_subscribers'
+        ];
+
+        for (const table of deletions) {
+            if (await tableExists(client, table)) {
+                await client.query(`DELETE FROM ${table} WHERE user_id = $1`, [id]);
+            }
+        }
+
+        await client.query('DELETE FROM users WHERE id = $1', [id]);
+        await client.query('COMMIT');
         res.json({ success: true, message: 'Account permanently deleted' });
     } catch (e) {
+        try { await client.query('ROLLBACK'); } catch (_) {}
         res.status(500).json({ success: false, message: e.message });
+    } finally {
+        client.release();
     }
 });
 
