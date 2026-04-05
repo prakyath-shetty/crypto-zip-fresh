@@ -4,6 +4,18 @@ const router = express.Router();
 const CACHE = new Map();
 const BASE_URL = 'https://api.coingecko.com/api/v3';
 const DEFAULT_STALE_MS = 30 * 60 * 1000;
+const COINGECKO_API_KEY = process.env.COINGECKO_API_KEY || process.env.COINGECKO_DEMO_API_KEY || '';
+
+function getCoinGeckoHeaders() {
+    const headers = {
+        'Accept': 'application/json',
+        'User-Agent': 'CryptoTrack/1.0 (+https://crypto-zip-fresh-chi.vercel.app)'
+    };
+    if (COINGECKO_API_KEY) {
+        headers['x-cg-demo-api-key'] = COINGECKO_API_KEY;
+    }
+    return headers;
+}
 
 function getCachedEntry(key) {
     return CACHE.get(key) || null;
@@ -47,10 +59,7 @@ async function fetchCoinGeckoJson(url, ttlMs, fallbackKey = null) {
         try {
             const response = await fetch(url, {
                 signal: AbortSignal.timeout(10000),
-                headers: {
-                    'Accept': 'application/json',
-                    'User-Agent': 'CryptoTrack/1.0 (+https://crypto-zip-fresh-chi.vercel.app)'
-                }
+                headers: getCoinGeckoHeaders()
             });
             if (!response.ok) {
                 const error = new Error(`CoinGecko error ${response.status}`);

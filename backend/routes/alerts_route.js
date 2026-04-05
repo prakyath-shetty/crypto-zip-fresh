@@ -5,6 +5,18 @@ const { protect } = require('../middleware/auth');
 const { sendAlertEmail } = require('../utils/sendEmail');
 
 const ALERT_PRICE_CACHE = new Map();
+const COINGECKO_API_KEY = process.env.COINGECKO_API_KEY || process.env.COINGECKO_DEMO_API_KEY || '';
+
+function getCoinGeckoHeaders() {
+    const headers = {
+        'Accept': 'application/json',
+        'User-Agent': 'CryptoTrack/1.0 (+https://crypto-zip-fresh-chi.vercel.app)'
+    };
+    if (COINGECKO_API_KEY) {
+        headers['x-cg-demo-api-key'] = COINGECKO_API_KEY;
+    }
+    return headers;
+}
 
 function getAlertPriceCache(key) {
     const hit = ALERT_PRICE_CACHE.get(key);
@@ -43,7 +55,10 @@ async function fetchAlertPrices(ids) {
     let lastError = null;
     for (let attempt = 0; attempt < 3; attempt += 1) {
         try {
-            const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+            const response = await fetch(url, {
+                signal: AbortSignal.timeout(8000),
+                headers: getCoinGeckoHeaders()
+            });
             if (!response.ok) throw new Error(`CoinGecko error: ${response.status}`);
             const prices = await response.json();
             setAlertPriceCache(url, prices, 45 * 1000);
