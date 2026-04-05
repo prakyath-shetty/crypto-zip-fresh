@@ -1162,14 +1162,14 @@
             banner.style.display = 'flex'; banner.className = 'api-banner'; banner.textContent = '🔄 Fetching live data...';
             try {
                 const coinIds = 'bitcoin,ethereum,solana,binancecoin,cardano,avalanche-2,ripple,dogecoin';
-                // Fetch top 50 for better gainers/losers coverage
-                const MARKET_IDS_50 = 'bitcoin,ethereum,tether,binancecoin,solana,ripple,usd-coin,cardano,avalanche-2,dogecoin,polkadot,chainlink,uniswap,litecoin,bitcoin-cash,stellar,cosmos,near,algorand,vechain,internet-computer,fantom,decentraland,the-sandbox,axie-infinity,matic-network,aptos,arbitrum,optimism,sui,pepe,shiba-inu,floki,bonk,tron,monero,ethereum-classic,filecoin,hedera-hashgraph,quant-network,aave,curve-dao-token,maker,compound,lido-dao,rocket-pool,frax,ondo-finance,pyth-network,worldcoin-wld';
+                // Keep this list smaller to avoid repeated CoinGecko 429s from Render.
+                const MARKET_IDS_TOP = 'bitcoin,ethereum,tether,binancecoin,solana,ripple,usd-coin,cardano,avalanche-2,dogecoin,polkadot,chainlink,uniswap,litecoin,bitcoin-cash,stellar,cosmos,near,tron,monero';
 
                 const [cgPrices, global, fg, top50, holdings, transactions, alerts] = await Promise.all([
                     cgFetch(`/simple/price?ids=${coinIds}&vs_currencies=${cur},usd&include_24hr_change=true`),
                     cgFetch('/global').then(j => j.data),
                     fetch('https://api.alternative.me/fng/?limit=1',{signal:AbortSignal.timeout(5000)}).then(r=>r.json()).then(j=>j.data[0]).catch(()=>({value:'50',value_classification:'Neutral'})),
-                    cgFetch(`/coins/markets?vs_currency=${cur}&ids=${MARKET_IDS_50}&order=market_cap_desc&per_page=50&page=1&price_change_percentage=24h`),
+                    cgFetch(`/coins/markets?vs_currency=${cur}&ids=${MARKET_IDS_TOP}&order=market_cap_desc&per_page=20&page=1&price_change_percentage=24h`),
                     loadPortfolio(),
                     loadTransactions(),
                     loadAlerts()
@@ -1196,7 +1196,7 @@
             } catch(e) {
                 console.error('Refresh error:', e);
                 banner.className = 'api-banner error';
-                banner.textContent = '⚠️ API unavailable — retrying in 90s';
+                banner.textContent = '⚠️ API unavailable — retrying in 5 min';
                 setTimeout(() => banner.style.display = 'none', 5000);
             }
         }
@@ -1395,10 +1395,10 @@
         document.getElementById('greeting').textContent    = h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : 'Evening';
         document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
-        let countdown = 90;
+        let countdown = 300;
         setInterval(() => {
             countdown--;
-            if (countdown <= 0) { countdown = 90; refreshAll(); }
+            if (countdown <= 0) { countdown = 300; refreshAll(); }
             document.getElementById('refresh-countdown').textContent = countdown + 's';
         }, 1000);
 

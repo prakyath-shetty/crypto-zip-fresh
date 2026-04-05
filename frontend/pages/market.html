@@ -329,11 +329,8 @@ async function loadAlertCount() {
 async function loadMarket() {
   showBanner('🔄 Fetching live prices...', 'info');
   try {
-    // Fetch coins market data
-    let coins = await cgFetch(`/coins/markets?vs_currency=usd&ids=${COIN_IDS}&order=market_cap_desc&per_page=20&page=1&price_change_percentage=24h`);
-    if (!Array.isArray(coins) || coins.length === 0) {
-      coins = await cgFetch('/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&price_change_percentage=24h');
-    }
+    // Fetch a smaller top-market slice first to avoid repeated 429s.
+    const coins = await cgFetch('/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&price_change_percentage=24h');
 
     // Fetch global stats
     const globalData = await cgFetch('/global');
@@ -378,7 +375,7 @@ async function loadMarket() {
   } catch(e) {
     console.error('Market load error:', e);
     document.getElementById('lastUpdated').textContent = '⚠️ Could not load — check your connection';
-    showBanner('⚠️ API error — will retry in 30s', 'warn');
+    showBanner('⚠️ API error — will retry in 3 min', 'warn');
   }
 }
 
@@ -482,10 +479,10 @@ function refreshNow() {
 }
 
 // ── AUTO REFRESH ──
-let cd = 30;
+let cd = 180;
 setInterval(() => {
   cd--;
-  if (cd <= 0) { cd = 30; loadMarket(); }
+  if (cd <= 0) { cd = 180; loadMarket(); }
   document.getElementById('countdown').textContent = cd + 's';
 }, 1000);
 
