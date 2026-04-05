@@ -355,7 +355,7 @@ router.post('/reset-password', async (req, res) => {
     );
 
     if (result.rows.length === 0)
-      return res.status(400).json({ success: false });
+      return res.status(400).json({ success: false, message: 'Invalid or expired reset link' });
 
     const userId = result.rows[0].user_id;
 
@@ -371,10 +371,10 @@ router.post('/reset-password', async (req, res) => {
       [token]
     );
 
-    res.json({ success: true });
+    res.json({ success: true, message: 'Password reset successful' });
 
   } catch (err) {
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, message: 'Could not reset password' });
   }
 });
 
