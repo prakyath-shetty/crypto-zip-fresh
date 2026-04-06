@@ -247,16 +247,45 @@ async function fetchHoldings(exchange, apiKey, apiSecret, passphrase) {
 }
 
 // ── BINANCE ──
+function formatBinanceError(status, payload) {
+    const code = payload?.code;
+    const message = payload?.msg;
+
+    if (code === -2015) {
+        return 'Binance rejected this API key. Check the API key, secret, read permission, and any IP whitelist on your Binance key.';
+    }
+
+    if (code === -1021) {
+        return 'Binance rejected the request because the server time is out of sync. Please try again in a moment.';
+    }
+
+    if (message) {
+        return `Binance error (${code ?? status}): ${message}`;
+    }
+
+    return `Binance API error: ${status}`;
+}
+
 async function binanceRequest(path, apiKey, apiSecret, params = {}) {
     const timestamp = Date.now();
-    const queryParams = new URLSearchParams({ ...params, timestamp });
+    const queryParams = new URLSearchParams({ ...params, timestamp, recvWindow: 5000 });
     const signature = crypto.createHmac('sha256', apiSecret).update(queryParams.toString()).digest('hex');
     queryParams.append('signature', signature);
 
     const res = await fetch(`https://api.binance.com${path}?${queryParams}`, {
         headers: { 'X-MBX-APIKEY': apiKey }
     });
-    if (!res.ok) throw new Error(`Binance API error: ${res.status}`);
+
+    if (!res.ok) {
+        let payload = null;
+        try {
+            payload = await res.json();
+        } catch (_) {
+            payload = null;
+        }
+        throw new Error(formatBinanceError(res.status, payload));
+    }
+
     return res.json();
 }
 
@@ -265,7 +294,7 @@ async function testBinance(apiKey, apiSecret) {
         await binanceRequest('/api/v3/account', apiKey, apiSecret);
         return { success: true };
     } catch (e) {
-        return { success: false, message: 'Invalid Binance API keys. Check your key and permissions.' };
+        return { success: false, message: e.message || 'Unable to verify Binance API keys.' };
     }
 }
 
